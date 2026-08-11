@@ -560,7 +560,14 @@ export async function renderCard(card: FrameNode, input: RenderInput): Promise<R
 
   card.name = cardName(input)
   set(card, KEYS.rev, formatNumber(input.figtation.rev + 1))
-  card.setRelaunchData({ edit: 'Edit this annotation' })
+  // The relaunch button is a convenience, not part of the card. It needs a
+  // manifest id, which an unpublished plugin may not have — so a failure here
+  // must never abort the render and with it the caller's positioning logic.
+  try {
+    card.setRelaunchData({ edit: 'Edit this annotation' })
+  } catch {
+    // No relaunch button on this card; everything else is intact.
+  }
 
   return report
 }

@@ -240,20 +240,33 @@ therefore shipped as the actual, open handover item.
 
 ---
 
-## D-015 · No `id` in the manifest until the first publish
+## D-015 · A numeric development id in the manifest — ~~superseded~~ revised
 
 **Problem.** §4.3 specifies `"id": "TBD_AFTER_FIRST_PUBLISH"`. Figma assigns the
-plugin id when a plugin is published; a placeholder string is not a valid id and
-risks a manifest validation error on _Import plugin from manifest…_ — exactly the
-step needed to test anything.
+real id on publish.
 
-**Options.** (a) Keep the placeholder. (b) Omit `id` during development.
+**First decision (wrong).** Omit `id` during development, on the assumption that a
+placeholder string might fail manifest validation on import.
 
-**Decision.** (b). The field is added back with the real id after the first
-publish (M11).
+**What actually happened.** The import accepted a missing `id` — but
+`setRelaunchData()` does not:
 
-**Rationale.** Omitting a field Figma fills in itself cannot break the import; an
-invalid value might. The PRD's intent — "do not invent an id" — is preserved.
+> Cannot set relaunch data in a plugin without an ID. Make sure your plugin
+> manifest has a valid "id" field.
+
+Because that call sits at the end of `renderCard()`, it aborted the rest of
+`createFigtations()`. Positioning and connector creation never ran, so cards
+stayed at the page origin — reported as "annotations are far away from the
+screen". See also D-020.
+
+**Revised decision.** Ship a syntactically valid numeric development id
+(`1417382967104512873`) and replace it with the real one on first publish (M11).
+`setRelaunchData()` is additionally wrapped in try/catch (D-020), so the relaunch
+button degrades instead of taking the card with it.
+
+**Rationale.** The original reasoning inverted the risk: the field is required by
+a runtime API, not just by the publish flow. A numeric id matches the format Figma
+itself issues.
 
 ---
 
@@ -322,3 +335,41 @@ rule that a manual vertical resize snaps back to hug.
 
 **Rationale.** Caught by reading, not by a test: there is no unit test that can
 see it, because it only exists inside the Figma runtime.
+
+---
+
+## D-019 · One coordinate conversion for absolute → parent-local
+
+**Problem.** Two conversions had grown side by side: `connector.ts` used
+`absoluteTransform` (`parentOrigin()`), while card placement in `sync.ts` and
+`arrange.ts` used `absoluteBoundingBox`. The two disagree whenever the parent is
+stroked, rotated, or a section — so a card and its own leader line could be
+computed against different origins.
+
+**Decision.** `parentOrigin()` from `connector.ts` is the single conversion, used
+by placement, arrange and the connector alike.
+
+**Rationale.** `absoluteBoundingBox` is the _visual_ hull; the child coordinate
+space is defined by `absoluteTransform`. Only one of them is correct, and having
+two was a latent bug waiting for a section.
+
+---
+
+## D-020 · A failing convenience call must not abort the build
+
+**Problem.** `setRelaunchData()` threw (D-015) at the end of `renderCard()`. Since
+`createFigtations()` positions the card and creates the connector _after_
+rendering, the exception left a stranded, connector-less card at the page origin.
+The error toast was correct and useless: it named the relaunch data, not the
+visible damage.
+
+**Decision.** Two changes. `setRelaunchData()` is wrapped in try/catch — the
+relaunch button is a convenience, and a card without one is still a valid card.
+And `buildFigtation()` now unwinds: if anything between "create frame" and "move
+into place" throws, the half-built card is removed before the error propagates.
+
+**Rationale.** A fresh frame lands at the page origin, which on a real canvas is
+nowhere near the design. "Partly built, in the wrong place, still there" is the
+worst of the three possible outcomes — worse than either success or a clean
+failure. NFR-5 asks for no silent failures; NFR-6 asks for no lost state. Debris
+serves neither.

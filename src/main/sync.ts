@@ -19,7 +19,7 @@ import type {
 import { CATEGORY_HEX, NEUTRAL_CONNECTOR_HEX } from '../shared/tokens'
 import { emit, throttledToast, toast } from './bus'
 import { createCardShell, renderCard, type RenderSource } from './card'
-import { boxOf, removeSatellites, syncConnector } from './connector'
+import { boxOf, parentOrigin, removeSatellites, syncConnector } from './connector'
 import { list as listCategories } from './categories'
 import { probeSelected } from './probe'
 import { getIndex, invalidate, refreshIndex } from './registry'
@@ -574,79 +574,8 @@ export async function createFigtations(
     for (const targetId of targetIds) {
       const target = await nodeById(targetId)
       if (!target) continue
-
-      const parent: BaseNode & ChildrenMixin = sectionAncestor(target) ?? page
-      const card = createCardShell(settings)
-      parent.appendChild(card)
-
-      const figtation: Figtation = {
-        id: createId(),
-        cardId: card.id,
-        targetId,
-        targetName: target.name,
-        categoryId: draft.categoryId,
-        label: draft.label,
-        props: draft.props,
-        connectorId: '',
-        endpointId: '',
-        pinned: false,
-        route: 'auto',
-        routeMode: draft.routeMode ?? settings.connectorStyle,
-        waypoints: [],
-        tangents: [],
-        cardSide: draft.cardSide ?? 'auto',
-        anchor: 'auto',
-        widthOverride: null,
-        rev: 0,
-      }
-      writeFigtation(card, figtation)
-
-      const category =
-        figtation.categoryId === '' ? null : (categories.get(figtation.categoryId) ?? null)
-      const properties =
-        figtation.props.length > 0 ? await probeSelected(target, figtation.props) : []
-      await renderCard(card, {
-        figtation,
-        category,
-        properties,
-        settings,
-        detached: false,
-        source: 'create',
-      })
-
-      const targetBox = boxOf(target)
-      const referenceBox = boxOf(outermostFrame(target)) ?? targetBox
-      if (targetBox && referenceBox) {
-        const cardBox = boxOf(card)
-        const height = cardBox?.height ?? 0
-        const position = placementFor(
-          referenceBox,
-          targetBox,
-          height,
-          card.width,
-          occupied,
-          settings
-        )
-        const origin = parent.type === 'PAGE' ? { x: 0, y: 0 } : boxOf(parent as SceneNode)
-        card.x = position.x - (origin?.x ?? 0)
-        card.y = position.y - (origin?.y ?? 0)
-        occupied.push({ x: position.x, y: position.y, width: card.width, height })
-      }
-
-      const result = await syncConnector({
-        figtation,
-        card,
-        targetBox,
-        colorHex: connectorColor(category),
-        settings,
-        pathEditing: false,
-      })
-      patchFigtation(card, {
-        connectorId: result.connectorId,
-        endpointId: result.endpointId,
-      })
-      writePos(card, boxOf(card))
-      ids.push(figtation.id)
+      const id = await buildFigtation(target, targetId, draft, settings, categories, occupied)
+      if (id !== null) ids.push(id)
     }
     refreshIndex(page)
     return ids
@@ -656,6 +585,94 @@ export async function createFigtations(
   page.selection = previousSelection
   commitUndo()
   return created
+}
+
+/**
+ * Builds one Figtation: card, content, position, connector.
+ *
+ * A fresh frame starts at the page origin and is only moved into place near the
+ * end. Anything that throws in between would leave a stranded card thousands of
+ * pixels from the design, so the whole build is unwound on failure.
+ */
+async function buildFigtation(
+  target: SceneNode,
+  targetId: string,
+  draft: FigtationDraft,
+  settings: Settings,
+  categories: Map<string, FigtationCategory>,
+  occupied: Rect[]
+): Promise<string | null> {
+  const parent: BaseNode & ChildrenMixin = sectionAncestor(target) ?? figma.currentPage
+  const card = createCardShell(settings)
+  parent.appendChild(card)
+
+  try {
+    const figtation: Figtation = {
+      id: createId(),
+      cardId: card.id,
+      targetId,
+      targetName: target.name,
+      categoryId: draft.categoryId,
+      label: draft.label,
+      props: draft.props,
+      connectorId: '',
+      endpointId: '',
+      pinned: false,
+      route: 'auto',
+      routeMode: draft.routeMode ?? settings.connectorStyle,
+      waypoints: [],
+      tangents: [],
+      cardSide: draft.cardSide ?? 'auto',
+      anchor: 'auto',
+      widthOverride: null,
+      rev: 0,
+    }
+    writeFigtation(card, figtation)
+
+    const category =
+      figtation.categoryId === '' ? null : (categories.get(figtation.categoryId) ?? null)
+    const properties =
+      figtation.props.length > 0 ? await probeSelected(target, figtation.props) : []
+    await renderCard(card, {
+      figtation,
+      category,
+      properties,
+      settings,
+      detached: false,
+      source: 'create',
+    })
+
+    const targetBox = boxOf(target)
+    const referenceBox = boxOf(outermostFrame(target)) ?? targetBox
+    if (targetBox && referenceBox) {
+      const height = boxOf(card)?.height ?? 0
+      const position = placementFor(referenceBox, targetBox, height, card.width, occupied, settings)
+      // Same conversion the connector uses: absoluteTransform, not the bounding
+      // box, which strokes and rotation would skew.
+      const origin = parentOrigin(parent)
+      card.x = position.x - origin.x
+      card.y = position.y - origin.y
+      occupied.push({ x: position.x, y: position.y, width: card.width, height })
+    }
+
+    const result = await syncConnector({
+      figtation,
+      card,
+      targetBox,
+      colorHex: connectorColor(category),
+      settings,
+      pathEditing: false,
+    })
+    patchFigtation(card, {
+      connectorId: result.connectorId,
+      endpointId: result.endpointId,
+    })
+    writePos(card, boxOf(card))
+    return figtation.id
+  } catch (error) {
+    if (!card.removed) card.remove()
+    throw error
+  }
 }
 
 export async function deleteFigtations(ids: string[]): Promise<number> {

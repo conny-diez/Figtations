@@ -4,7 +4,7 @@
  */
 import type { Rect } from '../shared/format/geometry'
 import type { ArrangeOptions } from '../shared/types'
-import { boxOf } from './connector'
+import { boxOf, parentOrigin } from './connector'
 import { getIndex, refreshIndex } from './registry'
 import { readFigtation, readSettings } from './store'
 import { outermostFrame, syncFigtation, withWriteGuard } from './sync'
@@ -35,9 +35,8 @@ async function nodeById(id: string): Promise<SceneNode | null> {
 /** Absolute → parent-local, because a card may live inside a section. */
 function localOffset(card: FrameNode): { x: number; y: number } {
   const parent = card.parent
-  if (!parent || parent.type === 'PAGE') return { x: 0, y: 0 }
-  const box = boxOf(parent as SceneNode)
-  return { x: box?.x ?? 0, y: box?.y ?? 0 }
+  if (!parent) return { x: 0, y: 0 }
+  return parentOrigin(parent)
 }
 
 export interface ArrangeResult {
