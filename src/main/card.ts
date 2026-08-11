@@ -506,13 +506,15 @@ function cardName(input: RenderInput): string {
 export function createCardShell(settings: Settings): FrameNode {
   const card = figma.createFrame()
   card.name = 'Figtation'
+  // Size first, auto layout second: resizing an auto-layout frame forces both
+  // sizing modes to FIXED and would cost the card its hug height.
+  card.resize(settings.cardWidth, 1)
   card.layoutMode = 'VERTICAL'
   card.primaryAxisSizingMode = 'AUTO'
   card.counterAxisSizingMode = 'FIXED'
   card.clipsContent = false
   card.locked = false
   card.expanded = false
-  card.resize(settings.cardWidth, 1)
   return card
 }
 

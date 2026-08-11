@@ -423,7 +423,15 @@ export async function syncAll(source: RenderSource = 'sync'): Promise<SyncAllRes
 }
 
 // ---------------------------------------------------------------------------
-// documentchange handler
+// Change handler
+//
+// PRD C-3 and FR-6 name `figma.on('documentchange')`. Under
+// `documentAccess: "dynamic-page"` that event cannot be registered without
+// `loadAllPagesAsync()` first, which would load every page of the file at
+// startup and blow NFR-1. `PageNode.on('nodechange')` is the granular
+// alternative the API recommends, delivers the same `NodeChange` payload for the
+// current page, and matches Figtations' page-scoped design. See DECISIONS.md
+// D-017.
 // ---------------------------------------------------------------------------
 
 const DEBOUNCE_MS = 120
@@ -486,9 +494,9 @@ async function flush(): Promise<void> {
   })
 }
 
-export function handleDocumentChange(event: DocumentChangeEvent): void {
+function handleNodeChange(event: NodeChangeEvent): void {
   if (isWriting()) return
-  for (const change of event.documentChanges) classify(change, pending)
+  for (const change of event.nodeChanges) classify(change, pending)
   if (isEmpty(pending)) return
   if (timer !== null) clearTimeout(timer)
   timer = setTimeout(() => {
@@ -496,6 +504,26 @@ export function handleDocumentChange(event: DocumentChangeEvent): void {
       toast('error', error instanceof Error ? error.message : 'Sync failed')
     })
   }, DEBOUNCE_MS)
+}
+
+let watchedPage: PageNode | null = null
+
+/** Listens on one page at a time; rebind after a page switch. */
+export function watchPage(page: PageNode): void {
+  if (watchedPage === page) return
+  unwatchPage()
+  page.on('nodechange', handleNodeChange)
+  watchedPage = page
+}
+
+export function unwatchPage(): void {
+  if (!watchedPage) return
+  try {
+    watchedPage.off('nodechange', handleNodeChange)
+  } catch {
+    // The page may already be gone; the listener dies with it.
+  }
+  watchedPage = null
 }
 
 // ---------------------------------------------------------------------------

@@ -43,7 +43,6 @@ import {
   createFigtations,
   deleteFigtations,
   duplicateFigtation,
-  handleDocumentChange,
   listSummaries,
   pathEditTarget,
   rerenderAll,
@@ -52,6 +51,8 @@ import {
   summarise,
   syncAll,
   syncFigtation,
+  unwatchPage,
+  watchPage,
   withWriteGuard,
 } from './sync'
 
@@ -541,7 +542,7 @@ async function panelSize(): Promise<{ width: number; height: number }> {
 }
 
 function registerListeners(): void {
-  figma.on('documentchange', handleDocumentChange)
+  watchPage(figma.currentPage)
   figma.on('selectionchange', () => {
     void pushSelection().catch(() => undefined)
     // Leaving the selection ends path editing (PRD FR-5b).
@@ -556,12 +557,15 @@ function registerListeners(): void {
   })
   figma.on('currentpagechange', () => {
     invalidate()
+    // `nodechange` is bound to a single page, so it has to follow the user.
+    watchPage(figma.currentPage)
     void (async () => {
-      await syncAll('sync')
+      if (!readOnly) await syncAll('sync')
       emit({ t: 'state', payload: await pluginState() })
     })().catch(() => undefined)
   })
   figma.on('close', () => {
+    unwatchPage()
     // Never leave an unlocked connector behind (PRD FR-5b).
     if (readOnly) return
     try {

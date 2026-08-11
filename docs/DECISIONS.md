@@ -272,3 +272,53 @@ for the session.
 **Rationale.** The failure mode this prevents is both plausible and invisible: the
 plugin would look like it works and quietly lose every annotation. The extra cost
 is one traversal in exactly the case where the fast path found nothing.
+
+---
+
+## D-017 · `PageNode.on('nodechange')` instead of `figma.on('documentchange')`
+
+**Problem.** C-3 and FR-6 name `figma.on('documentchange')` as the sync trigger.
+Under `documentAccess: "dynamic-page"` (C-4) registering that handler throws:
+
+> Cannot register documentchange handler in incremental mode without calling
+> figma.loadAllPagesAsync first.
+
+Found on the first manual launch in the Figma client — the plugin could not open
+at all.
+
+**Options.** (a) `await figma.loadAllPagesAsync()` before registering.
+(b) `PageNode.on('nodechange')` on the current page, rebound on page switch.
+(c) Drop `documentAccess: "dynamic-page"`.
+
+**Decision.** (b). `sync.ts` exposes `watchPage()` / `unwatchPage()`; the
+listener is bound in `registerListeners()`, rebound on `currentpagechange` and
+released on `close`.
+
+**Rationale.** (a) loads every page of the file at startup, which is exactly what
+C-4 avoids and what NFR-1 (interactive panel < 800 ms with 100 Figtations) cannot
+afford on a large file. (c) is not ours to change — C-4 is a hard constraint. The
+Figma typings recommend (b) as _the_ granular alternative for this case, and it
+fits the product: the registry, the list and the sync are all page-scoped
+already. `NodeChange` is a subset of `DocumentChange`, so `reconcile.classify()`
+is unchanged apart from its parameter type.
+
+**Consequence.** Changes on other pages no longer produce events. That is not a
+regression: `syncAll()` only ever operated on the current page, and a page switch
+triggers a full sync.
+
+---
+
+## D-018 · Size the card before enabling auto layout
+
+**Problem.** `resize()` on an auto-layout frame forces both sizing modes to
+FIXED. `createCardShell()` enabled auto layout first and then resized to the
+configured width, which would have taken the hug height away from every new card
+— contradicting §7 ("Width fix, Height hug") and FR-12 ("Card-Höhe → Plugin").
+
+**Decision.** Resize the plain frame first, then enable auto layout. In
+`renderCard()`, where a width change has to happen on a live auto-layout frame,
+the sizing modes are re-asserted after the resize — which doubles as the FR-12
+rule that a manual vertical resize snaps back to hug.
+
+**Rationale.** Caught by reading, not by a test: there is no unit test that can
+see it, because it only exists inside the Figma runtime.

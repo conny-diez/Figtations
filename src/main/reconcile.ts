@@ -89,10 +89,10 @@ function isProtectedRole(role: string): boolean {
 }
 
 /**
- * Folds one document change into the verdict. `node` may already be removed —
+ * Folds one node change into the verdict. `node` may already be removed —
  * every access is guarded.
  */
-export function classify(change: DocumentChange, verdict: ChangeVerdict): void {
+export function classify(change: NodeChange, verdict: ChangeVerdict): void {
   if (change.type === 'CREATE' || change.type === 'DELETE') {
     verdict.structural = true
     if (change.type === 'DELETE') verdict.deletedCardIds.add(change.id)
