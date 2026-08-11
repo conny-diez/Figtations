@@ -237,3 +237,38 @@ agent cannot run Figma.
 
 **Rationale.** Reporting these boxes as ticked would be false. The checklist is
 therefore shipped as the actual, open handover item.
+
+---
+
+## D-015 · No `id` in the manifest until the first publish
+
+**Problem.** §4.3 specifies `"id": "TBD_AFTER_FIRST_PUBLISH"`. Figma assigns the
+plugin id when a plugin is published; a placeholder string is not a valid id and
+risks a manifest validation error on _Import plugin from manifest…_ — exactly the
+step needed to test anything.
+
+**Options.** (a) Keep the placeholder. (b) Omit `id` during development.
+
+**Decision.** (b). The field is added back with the real id after the first
+publish (M11).
+
+**Rationale.** Omitting a field Figma fills in itself cannot break the import; an
+invalid value might. The PRD's intent — "do not invent an id" — is preserved.
+
+---
+
+## D-016 · The plugin-data search criterion is verified, not trusted
+
+**Problem.** §5.6 requires feature detection for `findAllWithCriteria` with a
+plugin-data criterion. Detection by try/catch only covers a runtime that
+_throws_. A runtime that accepts the criteria object but ignores the plugin-data
+part returns an empty array — and every Figtation silently disappears from the
+panel, the list and the sync.
+
+**Decision.** An empty result from the fast path is checked once against the
+`findAll` predicate. If the predicate finds something, the fast path is retired
+for the session.
+
+**Rationale.** The failure mode this prevents is both plausible and invisible: the
+plugin would look like it works and quietly lose every annotation. The extra cost
+is one traversal in exactly the case where the fast path found nothing.

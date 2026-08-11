@@ -8,7 +8,6 @@ import { computeRoute } from '../shared/format/geometry'
 import { isUiMessage, type MainEvent, type UiRequest } from '../shared/rpc'
 import { CONNECTOR_METRICS } from '../shared/tokens'
 import {
-  DEFAULT_SETTINGS,
   SETTINGS_RANGES,
   type FigtationSummary,
   type PluginState,
@@ -55,7 +54,6 @@ import {
   syncFigtation,
   withWriteGuard,
 } from './sync'
-import { list as categoriesList } from './categories'
 
 const PANEL_SIZE_KEY = 'panelSize'
 const DEFAULT_PANEL = { width: 360, height: 560 }
@@ -191,12 +189,8 @@ async function resyncOne(
   const card = cardOf(figtationId)
   if (!card) return
   await withWriteGuard(async () => {
-    await syncFigtation(
-      card,
-      source,
-      readSettings(),
-      new Map(categoriesList().map((c) => [c.id, c]))
-    )
+    const categories = new Map(listCategories().map((category) => [category.id, category]))
+    await syncFigtation(card, source, readSettings(), categories)
   })
 }
 
@@ -671,6 +665,3 @@ const globalScope = globalThis as unknown as {
 globalScope.onunhandledrejection = (): void => {
   figma.notify('Something went wrong in Figtations', { error: true })
 }
-
-// Referenced so the bundler keeps them even when unused by a code path above.
-export const __internals = { DEFAULT_SETTINGS }

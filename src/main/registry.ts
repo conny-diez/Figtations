@@ -50,16 +50,28 @@ function supportsCriteria(page: PageNode): boolean {
   return criteriaSupported
 }
 
-function candidates(page: PageNode): SceneNode[] {
-  if (supportsCriteria(page)) {
-    const criteria: SharedPluginDataCriteria = {
-      sharedPluginData: { namespace: NAMESPACE, keys: [KEYS.type] },
-    }
-    return page.findAllWithCriteria(
-      criteria as unknown as Parameters<typeof page.findAllWithCriteria>[0]
-    ) as SceneNode[]
-  }
+function scanWithPredicate(page: PageNode): SceneNode[] {
   return page.findAll((node) => nodeType(node) !== '')
+}
+
+function candidates(page: PageNode): SceneNode[] {
+  if (!supportsCriteria(page)) return scanWithPredicate(page)
+
+  const criteria: SharedPluginDataCriteria = {
+    sharedPluginData: { namespace: NAMESPACE, keys: [KEYS.type] },
+  }
+  const found = page.findAllWithCriteria(
+    criteria as unknown as Parameters<typeof page.findAllWithCriteria>[0]
+  ) as SceneNode[]
+  if (found.length > 0) return found
+
+  // A runtime that accepts the criteria object but ignores the plugin-data part
+  // returns an empty list instead of throwing, which would silently hide every
+  // Figtation. An empty result is therefore always double-checked once, and the
+  // fast path is retired for the session if the predicate disagrees.
+  const verified = scanWithPredicate(page)
+  if (verified.length > 0) criteriaSupported = false
+  return verified
 }
 
 function buildIndex(page: PageNode): CardIndex {
