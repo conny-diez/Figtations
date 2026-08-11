@@ -1,0 +1,42 @@
+{
+  "name": "figtations",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Figma plugin: annotations you can actually move.",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n main,ui -c blue,magenta \"npm:dev:main\" \"npm:dev:ui\"",
+    "dev:main": "node esbuild.main.mjs --watch",
+    "dev:ui": "vite build --watch",
+    "build": "npm run build:main && npm run build:ui",
+    "build:main": "node esbuild.main.mjs",
+    "build:ui": "vite build",
+    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.ui.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,css,json,md,mjs}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,css,json,md,mjs}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.109.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.9",
+    "concurrently": "^9.1.0",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vite": "^6.0.5",
+    "vite-plugin-singlefile": "^2.1.0",
+    "vitest": "^2.1.8"
+  }
+}
