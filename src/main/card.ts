@@ -241,6 +241,12 @@ async function renderLabel(
   return { labelFromCanvas: null, present: true }
 }
 
+/** Value colour: a token chip, a link, or plain text — in that order. */
+function valueColor(theme: CardTheme, chip: boolean, linked: boolean): string {
+  if (chip) return theme.tokenChipText
+  return linked ? theme.linkText : theme.propertyValueText
+}
+
 /**
  * Turns a value into a clickable jump to another node, the equivalent of Figma's
  * own "Go to main component" (DECISIONS.md D-026). A NODE hyperlink is the only
@@ -248,6 +254,15 @@ async function renderLabel(
  * node. Underlined, because a link nobody can see is not a link.
  */
 async function applyLink(text: TextNode, nodeId: string | undefined): Promise<void> {
+  try {
+    await writeLink(text, nodeId)
+  } catch {
+    // A link is a convenience. Losing it must never cost the card its render —
+    // the same lesson as D-020.
+  }
+}
+
+async function writeLink(text: TextNode, nodeId: string | undefined): Promise<void> {
   const current = text.hyperlink
   if (nodeId === undefined) {
     if (current !== null) {
@@ -352,7 +367,7 @@ async function renderValue(
       font.regular,
       CARD_METRICS.rowFontSize,
       CARD_METRICS.labelLineHeight,
-      wantsChip ? theme.tokenChipText : theme.propertyValueText
+      valueColor(theme, wantsChip, probed.link !== undefined)
     )
     markChild(text, 'row-value')
     text.name = 'value-text'
@@ -363,7 +378,7 @@ async function renderValue(
   }
 
   if (text.parent !== container) container.appendChild(text)
-  text.fills = [solid(wantsChip ? theme.tokenChipText : theme.propertyValueText)]
+  text.fills = [solid(valueColor(theme, wantsChip, probed.link !== undefined))]
   await applyLink(text, probed.link)
   const changed = await setCharacters(text, probed.value)
   return changed && input.source === 'sync'

@@ -549,6 +549,22 @@ therefore only set when `mainComponent.remote === false`; for library instances 
 value renders as plain text. Figma's own menu item opens the library file, which no
 plugin API exposes.
 
+**Correction after the first test round.** I described this as a one-click link on
+the canvas. That overstates what the Figma editor does: a text hyperlink is not a
+click target while editing — Figma surfaces it when the text node is _selected_,
+and follows it in presentation/prototype mode. So the hyperlink is real and
+travels with the file, but the dependable everyday entry point is the panel button.
+Three changes followed from the same round:
+
+- Name resolution and link resolution had shared one `try/catch`. A throw while
+  working out the display name silently cost the link. They are independent now.
+- `applyLink()` is wrapped: an exception there would have aborted the whole card
+  render — the same failure shape as D-020, which is exactly the mistake that
+  should not repeat.
+- A linked value is now drawn in a link colour (`CardTheme.linkText`) on top of
+  the underline, and the panel shows an explicit `↗`. Underline alone did not read
+  as a link.
+
 ---
 
 ## D-027 · The property picker closes on click-outside and Escape

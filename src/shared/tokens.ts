@@ -72,6 +72,8 @@ export interface CardTheme {
   tokenChipFill: string
   tokenChipFillOpacity: number
   tokenChipText: string
+  /** Colour for a value that links somewhere, e.g. a main component (D-026). */
+  linkText: string
   detachedStroke: string
 }
 
@@ -93,6 +95,7 @@ const DARK_THEME: CardTheme = {
   tokenChipFill: '#5E8CFF',
   tokenChipFillOpacity: 0.18,
   tokenChipText: '#A9C1FF',
+  linkText: '#7CB9FF',
   detachedStroke: '#FF6B6B',
 }
 
@@ -106,6 +109,7 @@ const LIGHT_THEME: CardTheme = {
   dividerColor: '#E5E5E5',
   swatchStroke: '#000000',
   tokenChipText: '#2B4FA8',
+  linkText: '#0B62C4',
 }
 
 export const CARD_THEMES: Record<'dark' | 'light', CardTheme> = {

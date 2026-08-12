@@ -343,18 +343,35 @@ async function probeProperty(node: SceneNode, type: PropertyType): Promise<Probe
       // The component name as it reads in the layer panel (D-024). Figma names the
       // children of a component set after their variant combination, so for a
       // variant instance the name lives on the set, not on the main component.
-      let name = ''
-      let link: string | undefined
+      let main: ComponentNode | null = null
       try {
-        const main = await node.getMainComponentAsync()
-        const parent = main?.parent
-        if (parent && parent.type === 'COMPONENT_SET') name = parent.name
-        else if (main && !looksLikeVariantName(main.name)) name = main.name
-        // Only a local main component can be navigated to; a library component
-        // lives in another file, where a node id does not resolve (D-026).
-        if (main && !main.remote) link = main.id
+        main = await node.getMainComponentAsync()
       } catch {
-        name = ''
+        main = null
+      }
+
+      // The link is resolved on its own: a failure while working out the display
+      // name must not silently cost the link, and vice versa (D-026).
+      let link: string | undefined
+      if (main) {
+        try {
+          // Only a local main component can be navigated to; a library component
+          // lives in another file, where a node id does not resolve.
+          if (!main.remote) link = main.id
+        } catch {
+          link = undefined
+        }
+      }
+
+      let name = ''
+      if (main) {
+        try {
+          const parent = main.parent
+          if (parent && parent.type === 'COMPONENT_SET') name = parent.name
+          else if (!looksLikeVariantName(main.name)) name = main.name
+        } catch {
+          name = ''
+        }
       }
       // Remote variants expose no set to read, so fall back to the instance's own
       // layer name — which is what the panel shows anyway.

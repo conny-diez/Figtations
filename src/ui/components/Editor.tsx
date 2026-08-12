@@ -198,7 +198,8 @@ export function Editor(props: EditorProps): JSX.Element {
                       title={strings.editor.goToMainComponent}
                       onClick={() => props.onRevealNode(probed.link as string)}
                     >
-                      {probed.value}
+                      <span className="value-link__text">{probed.value}</span>
+                      <span aria-hidden="true">↗</span>
                     </button>
                   ) : (
                     (probed?.value ?? '—')

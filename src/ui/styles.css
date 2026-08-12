@@ -388,18 +388,28 @@ select.input {
 }
 
 .value-link {
+  align-items: center;
   background: none;
   border: none;
-  color: var(--text);
+  color: var(--accent);
   cursor: pointer;
+  display: flex;
   font-size: inherit;
+  gap: 3px;
+  min-width: 0;
   padding: 0;
+}
+
+.value-link__text {
+  overflow: hidden;
   text-decoration: underline;
+  text-overflow: ellipsis;
   text-underline-offset: 2px;
+  white-space: nowrap;
 }
 
 .value-link:hover {
-  color: var(--accent);
+  color: var(--text);
 }
 
 .token-chip {

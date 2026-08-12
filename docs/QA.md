@@ -59,9 +59,10 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 - [ ] Mixed corner radius shows four values
 - [ ] An instance of a variant shows the component set's name, e.g. `Button`,
       not `variant=primary, state=enabled` (D-024)
-- [ ] The value is underlined on the card and jumps to the main component when
-      clicked in Figma (D-026)
-- [ ] The same value in the panel navigates there too, switching page if needed
+- [ ] On the card the value is underlined and in the link colour (D-026)
+- [ ] Select that text node → Figma shows the link and it opens the main component
+- [ ] Present/prototype mode → the link is directly clickable
+- [ ] In the panel the value shows `↗` and navigates, switching page if needed
 - [ ] A **library** instance shows a plain, unlinked value — no dead link
 - [ ] Dev mode: the link still navigates (navigation is not a write, FR-11)
 - [ ] An instance of a plain component shows that component's name
