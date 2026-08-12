@@ -127,6 +127,8 @@ interface Probed {
   input: PropertyInput
   /** Node id to link to, see `ProbedProperty.link`. */
   link?: string
+  /** Why no link, see `ProbedProperty.linkStatus`. */
+  linkStatus?: 'library' | 'unresolved'
 }
 
 function unavailable(type: PropertyType): Probed {
@@ -353,13 +355,18 @@ async function probeProperty(node: SceneNode, type: PropertyType): Promise<Probe
       // The link is resolved on its own: a failure while working out the display
       // name must not silently cost the link, and vice versa (D-026).
       let link: string | undefined
-      if (main) {
+      let linkStatus: 'library' | 'unresolved' | undefined
+      if (!main) {
+        linkStatus = 'unresolved'
+      } else {
         try {
-          // Only a local main component can be navigated to; a library component
-          // lives in another file, where a node id does not resolve.
-          if (!main.remote) link = main.id
+          // A library component lives in another file. Figma still hands us a node
+          // object, but it sits on no page, so it can neither be selected nor be
+          // the target of a NODE hyperlink.
+          if (main.remote) linkStatus = 'library'
+          else link = main.id
         } catch {
-          link = undefined
+          linkStatus = 'unresolved'
         }
       }
 
@@ -378,6 +385,7 @@ async function probeProperty(node: SceneNode, type: PropertyType): Promise<Probe
       if (name === '') name = node.name
       const probed: Probed = { available: true, input: { type, raw: { k: 'component', name } } }
       if (link !== undefined) probed.link = link
+      if (linkStatus !== undefined) probed.linkStatus = linkStatus
       return probed
     }
     case 'gridRowGap':
@@ -419,6 +427,7 @@ function toProbed(probed: Probed): ProbedProperty {
   if (formatted.swatch !== undefined) result.swatch = formatted.swatch
   if (formatted.variable !== undefined) result.variable = formatted.variable
   if (probed.link !== undefined) result.link = probed.link
+  if (probed.linkStatus !== undefined) result.linkStatus = probed.linkStatus
   return result
 }
 

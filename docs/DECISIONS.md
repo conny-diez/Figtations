@@ -565,6 +565,20 @@ Three changes followed from the same round:
   the underline, and the panel shows an explicit `↗`. Underline alone did not read
   as a link.
 
+**Second correction: a missing link now says why.** After the fixes above the link
+was still absent in testing, and the value rendered as plain white text — which is
+indistinguishable from a bug. Two states produce it, and neither was visible:
+
+- `mainComponent.remote === true` — a library component. Figma hands back a node
+  object, but it sits on no page, so it can neither be selected nor be the target of
+  a NODE hyperlink. Figma's own menu item opens the _library file_, and no plugin
+  API exposes that location. Not fixable, only explainable.
+- `getMainComponentAsync()` returned null — a broken or detached instance.
+
+`ProbedProperty.linkStatus` (`'library' | 'unresolved'`) now carries the reason and
+the panel shows a `ⓘ` next to the value with it. The lesson generalises: an absent
+affordance needs to state its reason, otherwise every limit reads as a defect.
+
 ---
 
 ## D-027 · The property picker closes on click-outside and Escape

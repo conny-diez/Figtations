@@ -412,6 +412,18 @@ select.input {
   color: var(--text);
 }
 
+.prop-row__plain {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-note {
+  color: var(--text-secondary);
+  cursor: help;
+  flex: none;
+}
+
 .token-chip {
   background: rgba(94, 140, 255, 0.18);
   border-radius: 4px;

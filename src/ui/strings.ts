@@ -39,6 +39,9 @@ export const strings = {
     notAnnotatable: 'This layer cannot be annotated',
     goToMainComponent: 'Go to main component',
     closePicker: 'Close property list',
+    linkLibrary:
+      'Library component — its main component lives in another file, which no plugin can jump to. Use right-click → Go to main component.',
+    linkUnresolved: 'The main component could not be resolved for this instance.',
   },
 
   list: {

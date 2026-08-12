@@ -107,6 +107,11 @@ export interface ProbedProperty {
    * lives in another file.
    */
   link?: string
+  /**
+   * Why `link` is absent, when a link would have been expected. Shown in the
+   * panel so a missing link is explained instead of just missing (D-026).
+   */
+  linkStatus?: 'library' | 'unresolved'
   /** false → greyed out in the picker. */
   available: boolean
 }

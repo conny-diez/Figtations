@@ -202,7 +202,26 @@ export function Editor(props: EditorProps): JSX.Element {
                       <span aria-hidden="true">↗</span>
                     </button>
                   ) : (
-                    (probed?.value ?? '—')
+                    <>
+                      <span className="prop-row__plain">{probed?.value ?? '—'}</span>
+                      {probed?.linkStatus && (
+                        <span
+                          className="link-note"
+                          title={
+                            probed.linkStatus === 'library'
+                              ? strings.editor.linkLibrary
+                              : strings.editor.linkUnresolved
+                          }
+                          aria-label={
+                            probed.linkStatus === 'library'
+                              ? strings.editor.linkLibrary
+                              : strings.editor.linkUnresolved
+                          }
+                        >
+                          ⓘ
+                        </span>
+                      )}
+                    </>
                   )}
                 </span>
                 <span className="prop-row__actions">

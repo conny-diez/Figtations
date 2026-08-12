@@ -63,7 +63,8 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 - [ ] Select that text node → Figma shows the link and it opens the main component
 - [ ] Present/prototype mode → the link is directly clickable
 - [ ] In the panel the value shows `↗` and navigates, switching page if needed
-- [ ] A **library** instance shows a plain, unlinked value — no dead link
+- [ ] A **library** instance shows a plain value plus `ⓘ` explaining why there is
+      no link — no dead link, no silent absence
 - [ ] Dev mode: the link still navigates (navigation is not a write, FR-11)
 - [ ] An instance of a plain component shows that component's name
 - [ ] An instance of a **library** variant still shows a usable name
