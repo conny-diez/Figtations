@@ -199,6 +199,8 @@ export interface Settings {
   showEndpointDot: boolean
   snapWaypoints: boolean
   showPropertyValues: boolean
+  /** Figma paints a frame's name above it, so this is visible on the canvas. */
+  showCardLayerName: boolean
   autoRefreshOnOpen: boolean
   arrangeGutter: number
   arrangeSide: 'right' | 'left'
@@ -214,6 +216,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showEndpointDot: true,
   snapWaypoints: true,
   showPropertyValues: true,
+  showCardLayerName: false,
   autoRefreshOnOpen: true,
   arrangeGutter: 80,
   arrangeSide: 'right',

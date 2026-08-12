@@ -96,6 +96,8 @@ interface TextareaProps {
   value: string
   onChange: (value: string) => void
   onBlur?: () => void
+  /** Fired on Cmd/Ctrl+Enter. Plain Enter stays a newline — labels are multi-line. */
+  onSubmit?: () => void
   placeholder?: string
   disabled?: boolean
   ariaLabel: string
@@ -106,6 +108,7 @@ export function Textarea({
   value,
   onChange,
   onBlur,
+  onSubmit,
   placeholder,
   disabled,
   ariaLabel,
@@ -121,6 +124,12 @@ export function Textarea({
       aria-label={ariaLabel}
       onChange={(event) => onChange(event.target.value)}
       onBlur={onBlur}
+      onKeyDown={(event) => {
+        if (!onSubmit) return
+        if (event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return
+        event.preventDefault()
+        onSubmit()
+      }}
     />
   )
 }

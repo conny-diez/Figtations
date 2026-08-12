@@ -32,13 +32,18 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 - [ ] Target in nested auto layout
 - [ ] Target is itself a Figtation card → refused with a hint
 
-## FR-1 · Creating
+## FR-1 · Creating (CTA flow, see DECISIONS.md D-021)
 
-- [ ] Card appears, target layout unchanged
+- [ ] Typing a label or adding a property places **nothing** on the canvas yet
+- [ ] The CTA is disabled while label and properties are both empty
+- [ ] _Create annotation_ places the card; target layout unchanged
+- [ ] Cmd+Enter in the label field creates it too; plain Enter inserts a newline
+- [ ] Abandoning a draft (change selection) leaves no card behind
 - [ ] Target stays selected after creation
+- [ ] After creating, the editor edits that Figtation live (no second CTA)
 - [ ] A second Figtation on the same node does not overlap the first
 - [ ] Cmd+Z removes card **and** connector in one step
-- [ ] Multi-selection: "3 layers selected — annotate all" creates three Figtations
+- [ ] Multi-selection: _Create 3 annotations_ creates three Figtations
 
 ## FR-2 · Card rendering
 
@@ -137,6 +142,10 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 - [ ] Theme switch re-renders all cards, light theme matches the spec
 - [ ] More than 50 cards → confirmation before the re-render
 - [ ] Every toggle persists across a reload
+- [ ] "Show layer name above the card" off → no title above the card on canvas,
+      and none in a PNG export (D-022)
+- [ ] Toggling it on → existing cards pick the descriptive name up on refresh
+- [ ] Rename a card by hand → the name survives a refresh
 
 ## FR-11 · Dev mode
 

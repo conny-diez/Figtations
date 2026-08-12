@@ -373,3 +373,57 @@ nowhere near the design. "Partly built, in the wrong place, still there" is the
 worst of the three possible outcomes — worse than either success or a clean
 failure. NFR-5 asks for no silent failures; NFR-6 asks for no lost state. Debris
 serves neither.
+
+---
+
+## D-021 · Creating an annotation is confirmed with a CTA
+
+**Problem.** FR-1 #4 specifies live-preview creation: "Beim ersten Property-Add
+oder beim Verlassen des Label-Felds mit nicht-leerem Inhalt wird die Card auf dem
+Canvas erzeugt (Live-Preview-Prinzip: es gibt kein separates 'Save')." In use this
+turned out to be unwanted — every half-typed thought became a node on the canvas,
+and abandoning a draft meant deleting a card.
+
+**Decision.** Requested by the product owner and implemented: in create mode the
+draft (category, label, properties) is local to the panel and nothing is written
+to the canvas until the primary CTA is pressed — _Create annotation_, or _Create
+n annotations_ for a multi-selection. `⌘↵` / `Ctrl+↵` in the label field submits;
+plain `↵` stays a newline, because labels are multi-line. The button is disabled
+until there is a label or at least one property.
+
+Editing an **existing** Figtation stays live: category, label and properties apply
+immediately, as before. The confirmation is about creation only.
+
+**Rationale.** FR-1's live preview optimises for the fewest clicks; it pays for
+that with canvas debris and an undo-driven workflow. The two-phase flow costs one
+click and makes the draft cancellable by simply not pressing it. Directly
+requested, so the product owner's call overrides the PRD.
+
+**Consequence.** The FR-1 acceptance criterion "Card erscheint auf dem Canvas"
+now means "after the CTA". `docs/QA.md` is updated accordingly.
+
+---
+
+## D-022 · The card's layer name is blank by default
+
+**Problem.** Figma paints a frame's layer name above every top-level frame, so
+`Figtation — {label}` (FR-2) is drawn on the canvas right above the card and
+appears in exports — the very context the product exists to serve.
+
+**Options.** (a) Keep the descriptive name. (b) Always blank. (c) A setting.
+
+**Decision.** (c), with the blank name as the default: `showCardLayerName`,
+default `false`. Figma does not keep an empty string — it substitutes a default —
+so the blank name is a zero-width space (`​`), the shortest name that draws
+no glyph.
+
+**Rationale.** The descriptive name helps in the layer panel and hurts on the
+canvas. A setting keeps both, and the default follows the request. Nothing in the
+code identifies nodes by name (§5.6 uses plugin data), so a blank name is
+functionally safe.
+
+**Side effect worth stating.** The rename rule got stricter at the same time: a
+sync no longer overwrites the layer name unless it is still one the plugin wrote
+itself (`Figtation`, `Figtation — …`, or the blank name). Renaming a card by hand
+is a visible, deliberate edit and now survives — while cards created before a
+settings change still pick the new naming up on the next refresh.

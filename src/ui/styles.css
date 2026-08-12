@@ -322,6 +322,19 @@ select.input {
   color: var(--text-secondary);
 }
 
+.cta {
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+}
+
+.cta .hint {
+  margin: 0;
+  text-align: center;
+}
+
 .empty-state h2 {
   font-size: 12px;
   margin: 0 0 6px;

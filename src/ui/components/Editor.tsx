@@ -84,18 +84,20 @@ export function Editor(props: EditorProps): JSX.Element {
 
   const category = props.categories.find((entry) => entry.id === categoryId) ?? null
 
+  /**
+   * Edits to an existing Figtation apply immediately. In create mode nothing is
+   * written to the canvas — the draft is local until the CTA is pressed.
+   */
   const commit = (next: { categoryId?: string; label?: string; props?: PropertyType[] }): void => {
-    const nextCategory = next.categoryId ?? categoryId
-    const nextLabel = next.label ?? label
-    const nextProps = next.props ?? props_
-    if (editingId) {
-      props.onPatch(next)
-      return
-    }
-    // Live-preview creation: as soon as there is content, the card appears.
-    if (nextLabel.trim() !== '' || nextProps.length > 0) {
-      props.onCreate(nextCategory, nextLabel, nextProps)
-    }
+    if (editingId) props.onPatch(next)
+  }
+
+  /** A draft needs something to show before it may become a card. */
+  const draftReady = label.trim() !== '' || props_.length > 0
+
+  const submitDraft = (): void => {
+    if (readOnly || !draftReady || props.targets.length === 0) return
+    props.onCreate(categoryId, label, props_)
   }
 
   const addProperty = (type: PropertyType): void => {
@@ -165,6 +167,7 @@ export function Editor(props: EditorProps): JSX.Element {
           onBlur={() => {
             if (label !== (editing?.label ?? '')) commit({ label })
           }}
+          {...(editingId ? {} : { onSubmit: submitDraft })}
         />
       </label>
 
@@ -232,15 +235,17 @@ export function Editor(props: EditorProps): JSX.Element {
         )}
       </div>
 
-      {multi && !editingId && (
-        <Button
-          variant="primary"
-          full
-          disabled={readOnly}
-          onClick={() => props.onCreate(categoryId, label, props_)}
-        >
-          {strings.editor.annotateAll}
-        </Button>
+      {!editingId && (
+        <div className="cta">
+          <Button variant="primary" full disabled={readOnly || !draftReady} onClick={submitDraft}>
+            {multi
+              ? strings.editor.createMany(props.targets.length)
+              : strings.editor.createAnnotation}
+          </Button>
+          <p className="hint">
+            {draftReady ? strings.editor.createHint : strings.editor.createDisabledHint}
+          </p>
+        </div>
       )}
 
       {editing && (

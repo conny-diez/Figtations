@@ -148,6 +148,12 @@ export function SettingsPanel(props: Props): JSX.Element {
           onChange={(showPropertyValues) => guardedChange({ showPropertyValues }, true)}
         />
         <Toggle
+          label={strings.settings.showCardLayerName}
+          checked={settings.showCardLayerName}
+          disabled={readOnly}
+          onChange={(showCardLayerName) => guardedChange({ showCardLayerName }, true)}
+        />
+        <Toggle
           label={strings.settings.autoRefreshOnOpen}
           checked={settings.autoRefreshOnOpen}
           disabled={readOnly}

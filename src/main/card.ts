@@ -496,10 +496,28 @@ function applyDetachedStroke(card: FrameNode, input: RenderInput): void {
   }
 }
 
+/**
+ * Figma paints the layer name above every top-level frame, so the card's name is
+ * visible on the canvas and in exports. `showCardLayerName: false` therefore
+ * needs a name that renders as nothing.
+ *
+ * Figma does not keep an empty string — it falls back to a default — so a
+ * zero-width space is used instead. It is the shortest name that draws no glyph.
+ */
+const BLANK_NAME = '\u200B'
+
+const NAME_PREFIX = 'Figtation'
+
 function cardName(input: RenderInput): string {
+  if (!input.settings.showCardLayerName) return BLANK_NAME
   const label = input.figtation.label.trim().split('\n')[0] ?? ''
   const suffix = label !== '' ? label : (input.category?.label ?? 'Annotation')
-  return `Figtation — ${suffix.slice(0, 40)}`
+  return `${NAME_PREFIX} — ${suffix.slice(0, 40)}`
+}
+
+/** True while the name is still one the plugin wrote itself. */
+function isPluginName(name: string): boolean {
+  return name === BLANK_NAME || name === NAME_PREFIX || name.startsWith(`${NAME_PREFIX} — `)
 }
 
 /** Creates the empty card shell. Content is filled in by `renderCard`. */
@@ -558,7 +576,11 @@ export async function renderCard(card: FrameNode, input: RenderInput): Promise<R
     if (card.children[index] !== child) card.insertChild(index, child)
   })
 
-  card.name = cardName(input)
+  // The layer name is visible on the canvas, so renaming a card by hand is a
+  // legitimate edit and a background sync must not undo it. A name the plugin
+  // wrote itself is still ours to update — otherwise cards created before a
+  // settings change would keep the old name forever.
+  if (input.source !== 'sync' || isPluginName(card.name)) card.name = cardName(input)
   set(card, KEYS.rev, formatNumber(input.figtation.rev + 1))
   // The relaunch button is a convenience, not part of the card. It needs a
   // manifest id, which an unpublished plugin may not have — so a failure here

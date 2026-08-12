@@ -81,5 +81,7 @@ describe('defaults', () => {
     expect(DEFAULT_SETTINGS.connectorCornerRadius).toBe(12)
     expect(DEFAULT_SETTINGS.connectorWeight).toBe(1.5)
     expect(DEFAULT_SETTINGS.arrangeGutter).toBe(80)
+    // Deviations from the PRD defaults, see DECISIONS.md D-022.
+    expect(DEFAULT_SETTINGS.showCardLayerName).toBe(false)
   })
 })

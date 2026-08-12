@@ -501,6 +501,7 @@ async function handle(request: UiRequest): Promise<unknown> {
         next.theme !== previous.theme ||
         next.cardWidth !== previous.cardWidth ||
         next.showPropertyValues !== previous.showPropertyValues ||
+        next.showCardLayerName !== previous.showCardLayerName ||
         next.connectorDashed !== previous.connectorDashed ||
         next.connectorCornerRadius !== previous.connectorCornerRadius ||
         next.showEndpointDot !== previous.showEndpointDot ||
