@@ -101,6 +101,12 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 
 ## FR-6 · Moving & sync
 
+- [ ] Drag the card slowly → the line follows continuously, no lag, no jumps (D-023)
+- [ ] Drag the annotated layer → same, the line stays attached
+- [ ] Drag fast in circles and release → the line ends up correct, not stale
+- [ ] Select 10+ Figtations and drag → tracking is skipped, the debounced path
+      catches up after release (no freeze)
+- [ ] Drag a card, then Cmd+Z → one undo step, no trail of connector edits
 - [ ] Move the card, move the target, move both
 - [ ] Resize the target, rotate the target
 - [ ] Move frame with target and card together

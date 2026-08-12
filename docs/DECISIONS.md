@@ -427,3 +427,48 @@ sync no longer overwrites the layer name unless it is still one the plugin wrote
 itself (`Figtation`, `Figtation — …`, or the blank name). Renaming a card by hand
 is a visible, deliberate edit and now survives — while cards created before a
 settings change still pick the new naming up on the next refresh.
+
+---
+
+## D-023 · A polling tracker keeps the line attached during a drag
+
+**Problem.** Dragging a card made the leader line lag behind in visible jumps.
+Cause: FR-6 prescribes `documentchange` with a **120 ms debounce**, and a debounce
+waits for _quiet_. While the user keeps dragging, the timer is reset on every
+event, so the line does not move at all until the drag pauses or ends. Dragging is
+precisely the moment the connection has to look attached, so the specified
+mechanism is wrong for its most important case. There is no drag event to use
+instead (C-3).
+
+**Options.** (a) Shorten the debounce — still waits for quiet, only shorter.
+(b) Throttle instead of debounce — better, but capped by however often Figma
+emits change events during a drag, which is not documented and not controllable.
+(c) Poll the selection while it touches a Figtation.
+
+**Decision.** (c), plus the groundwork that makes it affordable:
+
+- `syncGeometry()` split out of `syncFigtation()`: waypoints, connector, endpoint
+  only. No card render, no property probing — the expensive half stays on the
+  debounced path.
+- `trackSelection()` polls every 32 ms while the selection touches at most 8
+  Figtations, in **either** direction: the card was grabbed, or the annotated
+  layer was. Target nodes are resolved once up front so a tick needs no async
+  lookup. It stops on empty selection, page change and plugin close.
+- `syncConnector()` now writes only what changed. At 30 Hz, unconditionally
+  rewriting z-order, lock state, strokes and dash pattern is both slow and noisy
+  in the undo history. The temporary unlock/relock around the write is gone
+  entirely: the plugin API can write to a locked node.
+
+The debounced `nodechange` path stays as it is and remains the general mechanism —
+it catches everything the tracker does not watch and does the full card re-render
+after property changes.
+
+**Rationale.** (a) and (b) both inherit the same ceiling: they are reactions to an
+event stream whose cadence is out of our hands. Polling decouples the visual
+follow from that cadence. The cost is bounded by construction — it runs only while
+a Figtation is selected, only for the geometry, and only for up to 8 items — and it
+is self-limiting: no selection, no timer.
+
+**Consequence.** Above 8 selected Figtations, tracking is skipped and the
+debounced path handles it. NFR-2's 200 ms budget for 100 Figtations is unaffected:
+that path is unchanged.

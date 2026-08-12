@@ -1,10 +1,17 @@
 /**
  * Lifecycle engine (PRD FR-6): create, sync, delete.
  *
- * There is no drag event in the plugin API (PRD C-3), so everything is driven by
- * `documentchange` (debounced, coalesced by Figtation id) plus a full `syncAll`
- * whenever the plugin opens. `isWriting` guards against the renderer's own
- * writes feeding back into the handler.
+ * There is no drag event in the plugin API (PRD C-3), so the work is driven from
+ * three places:
+ *
+ * - `nodechange` on the current page, debounced 120 ms and coalesced by
+ *   Figtation id — the general case (FR-6, D-017)
+ * - a polling tracker while the selection touches a Figtation, which keeps the
+ *   line attached *during* a drag, where a debounce can only ever lag (D-023)
+ * - a full `syncAll` whenever the plugin opens, because state goes stale while it
+ *   is closed (C-3)
+ *
+ * `isWriting` guards against the renderer's own writes feeding back in.
  */
 import { createId } from '../shared/ids'
 import { rectsOverlap, translateWaypoints, type Rect } from '../shared/format/geometry'
@@ -174,26 +181,32 @@ export interface SyncOutcome {
   labelChanged: boolean
 }
 
-export async function syncFigtation(
+function figtationState(
+  figtation: Figtation,
+  target: SceneNode | null
+): { state: FigtationState; pageName?: string } {
+  if (figtation.targetId === '') return { state: 'free' }
+  if (!target) return { state: 'detached' }
+  const page = pageOf(target)
+  if (page && page.id !== figma.currentPage.id) return { state: 'off-page', pageName: page.name }
+  return { state: 'ok' }
+}
+
+/**
+ * The geometry half of a sync: waypoint translation, connector, endpoint dot.
+ *
+ * Deliberately free of card rendering and property probing so it can run at
+ * interactive rates while the user drags a card (see `trackSelection`). Reads
+ * plugin data, writes only the satellites.
+ */
+export async function syncGeometry(
   card: FrameNode,
-  source: RenderSource,
+  figtation: Figtation,
+  target: SceneNode | null,
+  state: FigtationState,
   settings: Settings,
   categories: Map<string, FigtationCategory>
-): Promise<SyncOutcome | null> {
-  const figtation = readFigtation(card)
-  if (!figtation) return null
-
-  const target = await nodeById(figtation.targetId)
-  const targetPage = target ? pageOf(target) : null
-  let state: FigtationState = 'ok'
-  let pageName: string | undefined
-  if (figtation.targetId === '') state = 'free'
-  else if (!target) state = 'detached'
-  else if (targetPage && targetPage.id !== figma.currentPage.id) {
-    state = 'off-page'
-    pageName = targetPage.name
-  }
-
+): Promise<void> {
   // Waypoints travel with the card, not with the target (PRD D-4).
   const cardBox = boxOf(card)
   if (figtation.route === 'custom' && figtation.waypoints.length > 0 && cardBox) {
@@ -208,7 +221,68 @@ export async function syncFigtation(
     }
   }
 
+  const category =
+    figtation.categoryId === '' ? null : (categories.get(figtation.categoryId) ?? null)
+
+  if (target && state === 'ok') {
+    const result = await syncConnector({
+      figtation,
+      card,
+      targetBox: boxOf(target),
+      colorHex: connectorColor(category),
+      settings,
+      pathEditing: pathEditFigtationId === figtation.id,
+    })
+    if (
+      result.connectorId !== figtation.connectorId ||
+      result.endpointId !== figtation.endpointId
+    ) {
+      figtation.connectorId = result.connectorId
+      figtation.endpointId = result.endpointId
+      patchFigtation(card, {
+        connectorId: figtation.connectorId,
+        endpointId: figtation.endpointId,
+      })
+    }
+  } else {
+    await removeSatellites(figtation)
+    if (figtation.connectorId !== '' || figtation.endpointId !== '') {
+      figtation.connectorId = ''
+      figtation.endpointId = ''
+      patchFigtation(card, { connectorId: '', endpointId: '' })
+    }
+  }
+
+  writePos(card, boxOf(card))
+}
+
+/** Geometry-only sync for one card, resolving the target itself. */
+export async function syncGeometryOnly(
+  card: FrameNode,
+  settings: Settings,
+  categories: Map<string, FigtationCategory>
+): Promise<void> {
+  const figtation = readFigtation(card)
+  if (!figtation) return
+  const target = await nodeById(figtation.targetId)
+  const { state } = figtationState(figtation, target)
+  await syncGeometry(card, figtation, target, state, settings, categories)
+}
+
+export async function syncFigtation(
+  card: FrameNode,
+  source: RenderSource,
+  settings: Settings,
+  categories: Map<string, FigtationCategory>
+): Promise<SyncOutcome | null> {
+  const figtation = readFigtation(card)
+  if (!figtation) return null
+
+  const target = await nodeById(figtation.targetId)
+  const { state, pageName } = figtationState(figtation, target)
+
   // A manual card resize becomes a width override (PRD FR-12).
+  const cardBox = boxOf(card)
   if (cardBox && source === 'sync') {
     const expected = figtation.widthOverride ?? settings.cardWidth
     if (Math.abs(cardBox.width - expected) > 0.5) {
@@ -239,40 +313,12 @@ export async function syncFigtation(
     labelChanged = true
   }
 
-  if (target && state === 'ok') {
-    if (target.name !== figtation.targetName) {
-      figtation.targetName = target.name
-      patchFigtation(card, { targetName: figtation.targetName })
-    }
-    const result = await syncConnector({
-      figtation,
-      card,
-      targetBox: boxOf(target),
-      colorHex: connectorColor(category),
-      settings,
-      pathEditing: pathEditFigtationId === figtation.id,
-    })
-    if (
-      result.connectorId !== figtation.connectorId ||
-      result.endpointId !== figtation.endpointId
-    ) {
-      figtation.connectorId = result.connectorId
-      figtation.endpointId = result.endpointId
-      patchFigtation(card, {
-        connectorId: figtation.connectorId,
-        endpointId: figtation.endpointId,
-      })
-    }
-  } else {
-    await removeSatellites(figtation)
-    if (figtation.connectorId !== '' || figtation.endpointId !== '') {
-      figtation.connectorId = ''
-      figtation.endpointId = ''
-      patchFigtation(card, { connectorId: '', endpointId: '' })
-    }
+  if (target && state === 'ok' && target.name !== figtation.targetName) {
+    figtation.targetName = target.name
+    patchFigtation(card, { targetName: figtation.targetName })
   }
 
-  writePos(card, boxOf(card))
+  await syncGeometry(card, figtation, target, state, settings, categories)
 
   const outcome: SyncOutcome = {
     figtation,
@@ -524,6 +570,134 @@ export function unwatchPage(): void {
     // The page may already be gone; the listener dies with it.
   }
   watchedPage = null
+  stopTracking()
+}
+
+// ---------------------------------------------------------------------------
+// Live tracking while a card is selected
+//
+// There is no drag event (PRD C-3), and `nodechange` is debounced by 120 ms
+// (FR-6) — a debounce waits for quiet, so during a drag the line only catches up
+// once the user pauses. Dragging is exactly the moment the connection has to look
+// attached, so while Figtation cards are selected their geometry is polled and
+// updated directly. Cheap by construction: no card render, no property probing,
+// target nodes resolved once up front.
+// ---------------------------------------------------------------------------
+
+const TRACK_INTERVAL_MS = 32
+/** Above this many tracked Figtations, polling would cost more than it buys. */
+const TRACK_MAX = 8
+
+interface TrackedFigtation {
+  card: FrameNode
+  target: SceneNode
+  state: FigtationState
+  cardBox: Rect
+  targetBox: Rect
+}
+
+let tracked: TrackedFigtation[] = []
+let trackTimer: ReturnType<typeof setTimeout> | null = null
+let trackGeneration = 0
+
+function sameRect(a: Rect | null, b: Rect | null): boolean {
+  if (!a || !b) return a === b
+  return (
+    Math.abs(a.x - b.x) < 0.01 &&
+    Math.abs(a.y - b.y) < 0.01 &&
+    Math.abs(a.width - b.width) < 0.01 &&
+    Math.abs(a.height - b.height) < 0.01
+  )
+}
+
+async function trackTick(generation: number): Promise<void> {
+  if (generation !== trackGeneration) return
+  trackTimer = null
+
+  const dirty: TrackedFigtation[] = []
+  for (const entry of tracked) {
+    if (entry.card.removed || entry.target.removed) continue
+    const cardBox = boxOf(entry.card)
+    const targetBox = boxOf(entry.target)
+    if (sameRect(cardBox, entry.cardBox) && sameRect(targetBox, entry.targetBox)) continue
+    if (cardBox) entry.cardBox = cardBox
+    if (targetBox) entry.targetBox = targetBox
+    dirty.push(entry)
+  }
+
+  if (dirty.length > 0) {
+    const settings = readSettings()
+    const categories = categoryMap()
+    await withWriteGuard(async () => {
+      for (const entry of dirty) {
+        const figtation = readFigtation(entry.card)
+        if (!figtation) continue
+        await syncGeometry(entry.card, figtation, entry.target, entry.state, settings, categories)
+      }
+      // Our own writes changed the card's box (never its position, but the
+      // satellites moved), so re-read before the next comparison.
+      for (const entry of dirty) {
+        const cardBox = boxOf(entry.card)
+        if (cardBox) entry.cardBox = cardBox
+      }
+    })
+  }
+
+  tracked = tracked.filter((entry) => !entry.card.removed && !entry.target.removed)
+  if (tracked.length === 0 || generation !== trackGeneration) return
+  trackTimer = setTimeout(() => {
+    void trackTick(generation).catch(() => undefined)
+  }, TRACK_INTERVAL_MS)
+}
+
+/**
+ * Tracks the Figtations touched by the current selection — whether the user
+ * grabbed the card or the annotated layer. Call on every selection change.
+ */
+export async function trackSelection(selection: readonly SceneNode[]): Promise<void> {
+  stopTracking()
+  if (selection.length === 0) return
+
+  const generation = trackGeneration
+  const index = getIndex(figma.currentPage)
+  const figtationIds = new Set<string>()
+  for (const node of selection) {
+    const owner = index.ownerOf.get(node.id)
+    if (owner !== undefined) figtationIds.add(owner)
+    for (const id of index.byTargetId.get(node.id) ?? []) figtationIds.add(id)
+    if (figtationIds.size > TRACK_MAX) return
+  }
+  if (figtationIds.size === 0) return
+
+  const entries: TrackedFigtation[] = []
+  for (const id of figtationIds) {
+    const card = index.byFigtationId.get(id)
+    if (!card || card.removed) continue
+    const figtation = readFigtation(card)
+    if (!figtation) continue
+    // Resolved once here so the tick itself stays free of async lookups.
+    const target = await nodeById(figtation.targetId)
+    const { state } = figtationState(figtation, target)
+    if (!target || state !== 'ok') continue
+    const cardBox = boxOf(card)
+    const targetBox = boxOf(target)
+    if (!cardBox || !targetBox) continue
+    entries.push({ card, target, state, cardBox, targetBox })
+  }
+  // A selection change during the awaits above supersedes this call.
+  if (generation !== trackGeneration || entries.length === 0) return
+
+  tracked = entries
+  trackTimer = setTimeout(() => {
+    void trackTick(generation).catch(() => undefined)
+  }, TRACK_INTERVAL_MS)
+}
+
+export function stopTracking(): void {
+  trackGeneration += 1
+  if (trackTimer !== null) clearTimeout(trackTimer)
+  trackTimer = null
+  tracked = []
 }
 
 // ---------------------------------------------------------------------------

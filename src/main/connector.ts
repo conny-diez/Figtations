@@ -13,7 +13,7 @@ import {
   type Rect,
   type RouteResult,
 } from '../shared/format/geometry'
-import { CONNECTOR_METRICS, NODE_NAMES, hexToRgb } from '../shared/tokens'
+import { CONNECTOR_METRICS, NODE_NAMES, hexToRgb, rgbToHex } from '../shared/tokens'
 import type { Figtation, Settings } from '../shared/types'
 import { KEYS, markSatellite, nodeType, set } from './store'
 
@@ -50,14 +50,25 @@ async function findNode(id: string): Promise<SceneNode | null> {
   }
 }
 
+/** True when `paints` is already exactly one opaque solid of `hex`. */
+function sameSolid(paints: MinimalFillsMixin['fills'], hex: string): boolean {
+  if (!Array.isArray(paints) || paints.length !== 1) return false
+  const paint = paints[0]
+  if (!paint || paint.type !== 'SOLID') return false
+  return rgbToHex(paint.color) === hex.toUpperCase() && (paint.opacity ?? 1) === 1
+}
+
 function styleConnector(vector: VectorNode, colorHex: string, settings: Settings): void {
-  vector.name = NODE_NAMES.connector
-  vector.strokes = [solid(colorHex)]
-  vector.strokeWeight = settings.connectorWeight
-  vector.strokeCap = 'ROUND'
-  vector.strokeJoin = 'ROUND'
-  vector.dashPattern = settings.connectorDashed ? [...CONNECTOR_METRICS.dashPattern] : []
-  vector.fills = []
+  if (vector.name !== NODE_NAMES.connector) vector.name = NODE_NAMES.connector
+  if (!sameSolid(vector.strokes, colorHex)) vector.strokes = [solid(colorHex)]
+  if (vector.strokeWeight !== settings.connectorWeight) {
+    vector.strokeWeight = settings.connectorWeight
+  }
+  if (vector.strokeCap !== 'ROUND') vector.strokeCap = 'ROUND'
+  if (vector.strokeJoin !== 'ROUND') vector.strokeJoin = 'ROUND'
+  const dash = settings.connectorDashed ? [...CONNECTOR_METRICS.dashPattern] : []
+  if (vector.dashPattern.length !== dash.length) vector.dashPattern = dash
+  if (Array.isArray(vector.fills) && vector.fills.length > 0) vector.fills = []
 }
 
 async function writeNetwork(
@@ -138,6 +149,9 @@ export async function syncConnector(input: ConnectorSyncInput): Promise<Connecto
   const origin = parentOrigin(parent)
 
   // --- connector -----------------------------------------------------------
+  // Everything below is written on every geometry sync, which during a drag runs
+  // ~30 times a second (D-023). Only actual changes are written: redundant writes
+  // cost time and clutter the undo history.
   let vector: VectorNode
   if (existingConnector && existingConnector.type === 'VECTOR') {
     vector = existingConnector
@@ -145,22 +159,25 @@ export async function syncConnector(input: ConnectorSyncInput): Promise<Connecto
     existingConnector?.remove()
     vector = figma.createVector()
     markSatellite(vector, 'connector', figtation.id)
+    set(vector, KEYS.cardId, figtation.id)
   }
-  set(vector, KEYS.cardId, figtation.id)
-  vector.locked = false
   styleConnector(vector, input.colorHex, settings)
   await writeNetwork(vector, route.points, settings.connectorCornerRadius, figtation.tangents)
   const bounds = boundsOf(route.points)
-  vector.x = bounds.x - origin.x
-  vector.y = bounds.y - origin.y
-  vector.visible = !route.hidden
+  const vectorX = bounds.x - origin.x
+  const vectorY = bounds.y - origin.y
+  if (Math.abs(vector.x - vectorX) > 0.01) vector.x = vectorX
+  if (Math.abs(vector.y - vectorY) > 0.01) vector.y = vectorY
+  if (vector.visible === route.hidden) vector.visible = !route.hidden
   if (vector.parent !== parent) parent.appendChild(vector)
-  vector.locked = !input.pathEditing
+  // The API can write to a locked node, so there is no need to unlock first.
+  const shouldLock = !input.pathEditing
+  if (vector.locked !== shouldLock) vector.locked = shouldLock
 
   // --- endpoint dot --------------------------------------------------------
   let endpointId = ''
+  let dot: EllipseNode | null = null
   if (settings.showEndpointDot && !route.hidden) {
-    let dot: EllipseNode
     if (existingEndpoint && existingEndpoint.type === 'ELLIPSE') {
       dot = existingEndpoint
     } else {
@@ -168,18 +185,19 @@ export async function syncConnector(input: ConnectorSyncInput): Promise<Connecto
       dot = figma.createEllipse()
       markSatellite(dot, 'endpoint', figtation.id)
       dot.resize(CONNECTOR_METRICS.endpointSize, CONNECTOR_METRICS.endpointSize)
+      set(dot, KEYS.cardId, figtation.id)
+      dot.name = NODE_NAMES.endpoint
+      dot.strokeWeight = CONNECTOR_METRICS.endpointStrokeWeight
+      dot.strokes = [solid(CONNECTOR_METRICS.endpointStrokeHex)]
     }
-    set(dot, KEYS.cardId, figtation.id)
-    dot.name = NODE_NAMES.endpoint
-    dot.locked = false
-    dot.fills = [solid(input.colorHex)]
-    dot.strokes = [solid(CONNECTOR_METRICS.endpointStrokeHex)]
-    dot.strokeWeight = CONNECTOR_METRICS.endpointStrokeWeight
-    dot.x = route.anchorPoint.x - origin.x - CONNECTOR_METRICS.endpointSize / 2
-    dot.y = route.anchorPoint.y - origin.y - CONNECTOR_METRICS.endpointSize / 2
-    dot.visible = true
+    if (!sameSolid(dot.fills, input.colorHex)) dot.fills = [solid(input.colorHex)]
+    const dotX = route.anchorPoint.x - origin.x - CONNECTOR_METRICS.endpointSize / 2
+    const dotY = route.anchorPoint.y - origin.y - CONNECTOR_METRICS.endpointSize / 2
+    if (Math.abs(dot.x - dotX) > 0.01) dot.x = dotX
+    if (Math.abs(dot.y - dotY) > 0.01) dot.y = dotY
+    if (!dot.visible) dot.visible = true
     if (dot.parent !== parent) parent.appendChild(dot)
-    dot.locked = true
+    if (!dot.locked) dot.locked = true
     endpointId = dot.id
   } else {
     existingEndpoint?.remove()
@@ -187,9 +205,15 @@ export async function syncConnector(input: ConnectorSyncInput): Promise<Connecto
 
   // --- z-order: connector below endpoint below card ------------------------
   const cardIndex = parent.children.indexOf(card)
-  if (cardIndex >= 0) {
+  const vectorIndex = parent.children.indexOf(vector)
+  const dotIndex = dot ? parent.children.indexOf(dot) : -1
+  const ordered =
+    cardIndex >= 0 &&
+    vectorIndex >= 0 &&
+    vectorIndex < cardIndex &&
+    (dotIndex < 0 || (dotIndex > vectorIndex && dotIndex < cardIndex))
+  if (!ordered && cardIndex >= 0) {
     parent.insertChild(cardIndex, vector)
-    const dot = endpointId === '' ? null : await findNode(endpointId)
     if (dot) {
       const nextCardIndex = parent.children.indexOf(card)
       if (nextCardIndex >= 0) parent.insertChild(nextCardIndex, dot)

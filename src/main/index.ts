@@ -48,9 +48,11 @@ import {
   rerenderAll,
   setListChangedHandler,
   setPathEditTarget,
+  stopTracking,
   summarise,
   syncAll,
   syncFigtation,
+  trackSelection,
   unwatchPage,
   watchPage,
   withWriteGuard,
@@ -546,6 +548,9 @@ function registerListeners(): void {
   watchPage(figma.currentPage)
   figma.on('selectionchange', () => {
     void pushSelection().catch(() => undefined)
+    // Keeps the leader line attached while the user drags (D-023). Read-only
+    // editors must not poll: they cannot write the geometry anyway.
+    if (!readOnly) void trackSelection(figma.currentPage.selection).catch(() => undefined)
     // Leaving the selection ends path editing (PRD FR-5b).
     const editing = pathEditTarget()
     if (editing === null) return
@@ -558,6 +563,7 @@ function registerListeners(): void {
   })
   figma.on('currentpagechange', () => {
     invalidate()
+    stopTracking()
     // `nodechange` is bound to a single page, so it has to follow the user.
     watchPage(figma.currentPage)
     void (async () => {
@@ -648,6 +654,8 @@ async function bootstrap(): Promise<void> {
   const settings = readSettings()
   if (settings.autoRefreshOnOpen) await syncAll('sync')
   emit({ t: 'state', payload: await pluginState() })
+  // The user may already have a card selected when the plugin opens.
+  await trackSelection(figma.currentPage.selection)
 
   if (command === 'import-native') {
     const scan = await scanNative('page')
