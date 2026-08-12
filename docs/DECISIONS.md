@@ -472,3 +472,48 @@ is self-limiting: no selection, no timer.
 **Consequence.** Above 8 selected Figtations, tracking is skipped and the
 debounced path handles it. NFR-2's 200 ms budget for 100 Figtations is unaffected:
 that path is unchanged.
+
+---
+
+## D-024 · `mainComponent` shows the component name, not its variants
+
+**Problem.** FR-3b specifies for `mainComponent`: "Instance mit
+Variant-Properties → `k=v` der `VARIANT`-Props, komma-separiert; sonst
+`mainComponent.name`", with the example `variant=single`. In practice a card then
+reads `variant=primary, state=enabled` — which says which variant was picked, but
+not _what component it is_. For handoff documentation the component is the
+interesting part.
+
+**Decision.** Requested by the product owner: show the component name as it reads
+in the layer panel, e.g. `Button`. The variant branch is removed rather than left
+in as dead code.
+
+**The trap this had to avoid.** Switching naively to `mainComponent.name` changes
+almost nothing: Figma names the children of a component set after their variant
+combination, so for a variant instance `mainComponent.name` _is_
+`variant=primary, state=enabled`. The name a designer means lives on the component
+**set**. Resolution order:
+
+1. main component's parent is a `COMPONENT_SET` → the set's name
+2. otherwise `mainComponent.name`, unless it looks like a variant combination
+3. otherwise the instance's own layer name — the fallback that covers remote
+   library variants, where no set is reachable
+
+`looksLikeVariantName()` in `shared/format/properties.ts` is the pure, unit-tested
+predicate for step 2.
+
+**Consequence.** The FR-3 acceptance criterion "Eine Instance zeigt ihre
+Variant-Properties analog zu Screenshot 6 (`variant=single`)" no longer holds and
+is replaced in `docs/QA.md`. If the variant combination is wanted later, it is a
+separate property, not this one.
+
+---
+
+## D-025 · The editor's "Preview" section is gone
+
+**Decision.** Removed on request. It repeated the category that the dropdown two
+rows above already shows, in a card-styled pill that suggested it was a preview of
+the whole card when it only ever showed the pill.
+
+**Rationale.** The real preview is the card on the canvas — that is the entire
+point of the product (C-1). A partial second-guess of it in the panel is noise.

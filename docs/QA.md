@@ -57,7 +57,12 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 
 - [ ] A node with a bound fill variable shows the variable name, not the hex value
 - [ ] Mixed corner radius shows four values
-- [ ] An instance shows its variant properties (`variant=single`)
+- [ ] An instance of a variant shows the component set's name, e.g. `Button`,
+      not `variant=primary, state=enabled` (D-024)
+- [ ] An instance of a plain component shows that component's name
+- [ ] An instance of a **library** variant still shows a usable name
+- [ ] A renamed instance still reports the component, not the custom layer name
+      (unless nothing else is resolvable)
 - [ ] All 33 property types resolve; unknown ones fall back to `—`
 
 ## FR-4 · Categories

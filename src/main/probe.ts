@@ -7,6 +7,7 @@
  */
 import {
   formatProperty,
+  looksLikeVariantName,
   PROPERTY_LABELS,
   UNKNOWN_VALUE,
   type AxisAlign,
@@ -337,25 +338,22 @@ async function probeProperty(node: SceneNode, type: PropertyType): Promise<Probe
     }
     case 'mainComponent': {
       if (node.type !== 'INSTANCE') return unavailable(type)
-      const variants: Record<string, string> = {}
-      const properties = asRecord(rec['componentProperties'])
-      for (const [key, value] of Object.entries(properties)) {
-        const property = asRecord(value)
-        if (property['type'] !== 'VARIANT') continue
-        variants[key] = String(property['value'] ?? '')
-      }
+      // The component name as it reads in the layer panel (D-024). Figma names the
+      // children of a component set after their variant combination, so for a
+      // variant instance the name lives on the set, not on the main component.
       let name = ''
       try {
         const main = await node.getMainComponentAsync()
-        name = main?.name ?? ''
+        const parent = main?.parent
+        if (parent && parent.type === 'COMPONENT_SET') name = parent.name
+        else if (main && !looksLikeVariantName(main.name)) name = main.name
       } catch {
         name = ''
       }
-      const raw: RawValue =
-        Object.keys(variants).length > 0
-          ? { k: 'component', name, variants }
-          : { k: 'component', name }
-      return { available: true, input: { type, raw } }
+      // Remote variants expose no set to read, so fall back to the instance's own
+      // layer name — which is what the panel shows anyway.
+      if (name === '') name = node.name
+      return { available: true, input: { type, raw: { k: 'component', name } } }
     }
     case 'gridRowGap':
       if (layoutMode !== 'GRID') return unavailable(type)

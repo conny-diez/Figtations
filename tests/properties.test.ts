@@ -6,6 +6,7 @@ import {
   formatPaints,
   formatProperty,
   formatRadii,
+  looksLikeVariantName,
   px,
   PROPERTY_LABELS,
   titleCase,
@@ -217,15 +218,7 @@ describe('formatProperty', () => {
     ).toBe('2%')
   })
 
-  it('formats instance variant properties', () => {
-    const result = formatProperty({
-      type: 'mainComponent',
-      raw: { k: 'component', name: 'Button', variants: { variant: 'single' } },
-    })
-    expect(result.value).toBe('variant=single')
-  })
-
-  it('falls back to the component name without variants', () => {
+  it('shows the component name, not its variants (D-024)', () => {
     const result = formatProperty({
       type: 'mainComponent',
       raw: { k: 'component', name: 'Button' },
@@ -278,6 +271,17 @@ describe('formatProperty', () => {
 
   it('returns the fallback when no raw value is given', () => {
     expect(formatProperty({ type: 'width' }).value).toBe(UNKNOWN_VALUE)
+  })
+
+  it('detects variant combinations, which are not component names', () => {
+    expect(looksLikeVariantName('variant=primary, state=enabled')).toBe(true)
+    expect(looksLikeVariantName('variant=single')).toBe(true)
+    expect(looksLikeVariantName('Size=Large, Icon=true')).toBe(true)
+    // An empty variant value is still a variant combination.
+    expect(looksLikeVariantName('state=')).toBe(true)
+    expect(looksLikeVariantName('Button')).toBe(false)
+    expect(looksLikeVariantName('Button / Primary')).toBe(false)
+    expect(looksLikeVariantName('')).toBe(false)
   })
 
   it('has a label for every one of the 33 property types', () => {

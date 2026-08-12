@@ -82,7 +82,7 @@ export type RawValue =
   | { k: 'lineHeight'; unit: 'AUTO' | 'PIXELS' | 'PERCENT'; v?: number }
   | { k: 'letterSpacing'; unit: 'PIXELS' | 'PERCENT'; v: number }
   | { k: 'titleCase'; v: string }
-  | { k: 'component'; name: string; variants?: Record<string, string> }
+  | { k: 'component'; name: string }
 
 export interface PropertyInput {
   type: PropertyType
@@ -126,6 +126,18 @@ export function px(n: number): string {
 function percent(n: number): string {
   const formatted = formatNumber(n)
   return formatted === UNKNOWN_VALUE ? UNKNOWN_VALUE : `${formatted}%`
+}
+
+/**
+ * True for a name that is really a variant combination, e.g.
+ * `variant=primary, state=enabled`. Figma names the children of a component set
+ * that way, so such a name identifies the variant, not the component
+ * (DECISIONS.md D-024).
+ */
+export function looksLikeVariantName(name: string): boolean {
+  const trimmed = name.trim()
+  if (trimmed === '') return false
+  return trimmed.split(',').every((part) => /^[^=,]+=[^=,]*$/.test(part.trim()))
 }
 
 /** `SPACE_BETWEEN` → `Space between`, `left` → `Left`. */
@@ -260,16 +272,8 @@ function formatRaw(raw: RawValue): PaintsResult {
       return { value: raw.unit === 'PIXELS' ? px(raw.v) : percent(raw.v) }
     case 'letterSpacing':
       return { value: raw.unit === 'PIXELS' ? px(raw.v) : percent(raw.v) }
-    case 'component': {
-      const variants = raw.variants
-      if (variants) {
-        const entries = Object.entries(variants)
-        if (entries.length > 0) {
-          return { value: entries.map(([key, val]) => `${key}=${val}`).join(', ') }
-        }
-      }
+    case 'component':
       return { value: raw.name === '' ? UNKNOWN_VALUE : raw.name }
-    }
   }
 }
 

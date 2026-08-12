@@ -1,9 +1,10 @@
 /**
- * Card editor (PRD FR-1, FR-5b). There is no "Save": the first property or a
- * non-empty label creates the Figtation, everything after that edits it live.
+ * Card editor (PRD FR-1, FR-5b).
+ *
+ * Creation is confirmed with a CTA and nothing reaches the canvas before it
+ * (DECISIONS.md D-021). Editing an existing Figtation applies immediately.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { CATEGORY_HEX } from '../../shared/tokens'
 import type {
   CardSide,
   FigtationCategory,
@@ -16,7 +17,7 @@ import type {
 import { strings } from '../strings'
 import { CategorySelect } from './CategorySelect'
 import { PropertyPicker } from './PropertyPicker'
-import { Button, IconButton, Pill, Segmented, Textarea } from './primitives'
+import { Button, IconButton, Segmented, Textarea } from './primitives'
 
 const SIDE_OPTIONS: ReadonlyArray<{ value: CardSide; label: string }> = [
   { value: 'auto', label: 'Auto' },
@@ -81,8 +82,6 @@ export function Editor(props: EditorProps): JSX.Element {
     for (const entry of props.probed) map.set(entry.type, entry)
     return map
   }, [props.probed])
-
-  const category = props.categories.find((entry) => entry.id === categoryId) ?? null
 
   /**
    * Edits to an existing Figtation apply immediately. In create mode nothing is
@@ -250,13 +249,6 @@ export function Editor(props: EditorProps): JSX.Element {
 
       {editing && (
         <>
-          {category && (
-            <div className="field">
-              <span className="field__label">Preview</span>
-              <Pill color={CATEGORY_HEX[category.color]}>{category.label}</Pill>
-            </div>
-          )}
-
           <div className="field">
             <span className="field__label">{strings.editor.line}</span>
             <Segmented
