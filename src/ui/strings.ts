@@ -37,6 +37,8 @@ export const strings = {
     duplicate: 'Duplicate',
     delete: 'Delete',
     notAnnotatable: 'This layer cannot be annotated',
+    goToMainComponent: 'Go to main component',
+    closePicker: 'Close property list',
   },
 
   list: {
@@ -103,6 +105,8 @@ export const strings = {
     scopePage: 'This page',
     scopeFile: 'Whole file',
   },
+
+  resizeHandle: 'Resize the plugin window',
 
   confirm: { cancel: 'Cancel', confirm: 'Continue' },
 } as const

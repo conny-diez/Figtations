@@ -16,7 +16,7 @@ import { AnnotationList } from './components/AnnotationList'
 import { CategoryManager } from './components/CategoryManager'
 import { Editor } from './components/Editor'
 import { SettingsPanel } from './components/SettingsPanel'
-import { Button, Toasts, type ToastMessage } from './components/primitives'
+import { Button, ResizeHandle, Toasts, type ToastMessage } from './components/primitives'
 
 type Tab = 'annotate' | 'all'
 
@@ -253,6 +253,9 @@ export function App(): JSX.Element {
               )
             }
           }}
+          onRevealNode={(nodeId) => {
+            void run(request({ t: 'revealNode', nodeId }))
+          }}
           onResetWidth={() => {
             if (editing) {
               void run(request({ t: 'resetWidth', figtationId: editing.id })).then(refreshState)
@@ -411,6 +414,13 @@ export function App(): JSX.Element {
       )}
 
       <Toasts items={toasts} />
+
+      <ResizeHandle
+        label={strings.resizeHandle}
+        onResize={(width, height, persist) => {
+          void request({ t: 'resizeUi', width, height, persist }).catch(() => undefined)
+        }}
+      />
     </div>
   )
 }

@@ -100,6 +100,13 @@ export interface ProbedProperty {
   swatch?: string
   /** Variable name, when the field is bound to one. */
   variable?: string
+  /**
+   * Node id this value points at — currently the local main component of an
+   * instance. Rendered as a hyperlink on the card and as a link in the panel
+   * (DECISIONS.md D-026). Absent for library components, whose main component
+   * lives in another file.
+   */
+  link?: string
   /** false → greyed out in the picker. */
   available: boolean
 }
@@ -220,6 +227,23 @@ export const DEFAULT_SETTINGS: Settings = {
   autoRefreshOnOpen: true,
   arrangeGutter: 80,
   arrangeSide: 'right',
+}
+
+/** Panel size bounds. FR-7 starts at 360x560 and calls for a resizable panel. */
+export const PANEL_SIZE = {
+  defaultWidth: 360,
+  defaultHeight: 560,
+  minWidth: 300,
+  minHeight: 320,
+  maxWidth: 1600,
+  maxHeight: 1600,
+} as const
+
+export function clampPanelSize(width: number, height: number): { width: number; height: number } {
+  return {
+    width: Math.min(PANEL_SIZE.maxWidth, Math.max(PANEL_SIZE.minWidth, Math.round(width))),
+    height: Math.min(PANEL_SIZE.maxHeight, Math.max(PANEL_SIZE.minHeight, Math.round(height))),
+  }
 }
 
 export const SETTINGS_RANGES = {

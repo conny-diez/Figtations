@@ -95,7 +95,8 @@ select {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
+  /* Extra room on the right so the resize grip never sits on the counter. */
+  padding: 8px 22px 8px 12px;
   border-top: 1px solid var(--border);
 }
 
@@ -384,6 +385,21 @@ select.input {
 .prop-row__actions {
   display: flex;
   gap: 2px;
+}
+
+.value-link {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.value-link:hover {
+  color: var(--accent);
 }
 
 .token-chip {
@@ -736,6 +752,33 @@ select.input {
 
 .swatch.is-active {
   box-shadow: 0 0 0 2px var(--accent);
+}
+
+.resize-handle {
+  align-items: flex-end;
+  bottom: 0;
+  color: var(--text-secondary);
+  cursor: nwse-resize;
+  display: flex;
+  height: 16px;
+  justify-content: flex-end;
+  position: fixed;
+  right: 0;
+  touch-action: none;
+  width: 16px;
+  z-index: 300;
+}
+
+.resize-handle:hover {
+  color: var(--text);
+}
+
+/* --- picker head -------------------------------------------------------- */
+
+.picker__head {
+  align-items: center;
+  display: flex;
+  gap: 6px;
 }
 
 /* --- toasts ------------------------------------------------------------- */

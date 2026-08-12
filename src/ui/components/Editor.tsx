@@ -53,6 +53,8 @@ export interface EditorProps {
   onSetRouteMode: (mode: RouteMode) => void
   onSetCardSide: (side: CardSide) => void
   onResetWidth: () => void
+  /** Jump to a node a property points at, e.g. the main component. */
+  onRevealNode: (nodeId: string) => void
 }
 
 export function Editor(props: EditorProps): JSX.Element {
@@ -189,6 +191,15 @@ export function Editor(props: EditorProps): JSX.Element {
                   )}
                   {probed?.variable ? (
                     <span className="token-chip">{probed.variable}</span>
+                  ) : probed?.link ? (
+                    <button
+                      type="button"
+                      className="value-link"
+                      title={strings.editor.goToMainComponent}
+                      onClick={() => props.onRevealNode(probed.link as string)}
+                    >
+                      {probed.value}
+                    </button>
                   ) : (
                     (probed?.value ?? '—')
                   )}

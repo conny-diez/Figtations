@@ -59,6 +59,11 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 - [ ] Mixed corner radius shows four values
 - [ ] An instance of a variant shows the component set's name, e.g. `Button`,
       not `variant=primary, state=enabled` (D-024)
+- [ ] The value is underlined on the card and jumps to the main component when
+      clicked in Figma (D-026)
+- [ ] The same value in the panel navigates there too, switching page if needed
+- [ ] A **library** instance shows a plain, unlinked value — no dead link
+- [ ] Dev mode: the link still navigates (navigation is not a write, FR-11)
 - [ ] An instance of a plain component shows that component's name
 - [ ] An instance of a **library** variant still shows a usable name
 - [ ] A renamed instance still reports the component, not the custom layer name
@@ -124,6 +129,10 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 
 ## FR-7 · Panel, list, orphans
 
+- [ ] Property picker: click outside closes it, Escape closes it, × closes it (D-027)
+- [ ] Drag the bottom-right grip → the window resizes smoothly in both axes (D-028)
+- [ ] Resize to the minimum and back out → no overshoot lag at the limit
+- [ ] Close and reopen the plugin → the last size is restored
 - [ ] Selection changes update the panel without noticeable delay
 - [ ] Delete the target → card marked "Detached" on the next sync, no crash
 - [ ] Reattach to a new node restores connector and live values

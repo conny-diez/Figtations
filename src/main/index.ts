@@ -8,7 +8,9 @@ import { computeRoute } from '../shared/format/geometry'
 import { isUiMessage, type MainEvent, type UiRequest } from '../shared/rpc'
 import { CONNECTOR_METRICS } from '../shared/tokens'
 import {
+  PANEL_SIZE,
   SETTINGS_RANGES,
+  clampPanelSize,
   type FigtationSummary,
   type PluginState,
   type RouteState,
@@ -59,7 +61,7 @@ import {
 } from './sync'
 
 const PANEL_SIZE_KEY = 'panelSize'
-const DEFAULT_PANEL = { width: 360, height: 560 }
+const DEFAULT_PANEL = { width: PANEL_SIZE.defaultWidth, height: PANEL_SIZE.defaultHeight }
 
 const readOnly = figma.editorType === 'dev'
 
@@ -185,6 +187,15 @@ function cardOf(figtationId: string): FrameNode | null {
   return getIndex(figma.currentPage).byFigtationId.get(figtationId) ?? null
 }
 
+function pageOfNode(node: BaseNode): PageNode | null {
+  let current: BaseNode | null = node
+  while (current) {
+    if (current.type === 'PAGE') return current
+    current = current.parent
+  }
+  return null
+}
+
 async function resyncOne(
   figtationId: string,
   source: 'plugin' | 'create' = 'plugin'
@@ -279,6 +290,19 @@ async function handle(request: UiRequest): Promise<unknown> {
       const target = await figma.getNodeByIdAsync(figtation.targetId)
       if (!target || target.removed) throw new Error('The target no longer exists.')
       const scene = target as SceneNode
+      figma.currentPage.selection = [scene]
+      figma.viewport.scrollAndZoomIntoView([scene])
+      return null
+    }
+
+    case 'revealNode': {
+      // The equivalent of Figma's "Go to main component" (D-026). The node may
+      // live on another page, so the page has to be switched first.
+      const node = await figma.getNodeByIdAsync(request.nodeId)
+      if (!node || node.removed) throw new Error('That component no longer exists.')
+      const scene = node as SceneNode
+      const page = pageOfNode(scene)
+      if (page && page.id !== figma.currentPage.id) await figma.setCurrentPageAsync(page)
       figma.currentPage.selection = [scene]
       figma.viewport.scrollAndZoomIntoView([scene])
       return null
@@ -514,10 +538,10 @@ async function handle(request: UiRequest): Promise<unknown> {
     }
 
     case 'resizeUi': {
-      const width = Math.max(300, Math.round(request.width))
-      const height = Math.max(360, Math.round(request.height))
+      const { width, height } = clampPanelSize(request.width, request.height)
       figma.ui.resize(width, height)
-      await figma.clientStorage.setAsync(PANEL_SIZE_KEY, { width, height })
+      // Only persisted when the drag ends: a resize fires once per frame.
+      if (request.persist) await figma.clientStorage.setAsync(PANEL_SIZE_KEY, { width, height })
       return null
     }
   }
@@ -535,7 +559,7 @@ async function panelSize(): Promise<{ width: number; height: number }> {
       const width = record['width']
       const height = record['height']
       if (typeof width === 'number' && typeof height === 'number') {
-        return { width, height }
+        return clampPanelSize(width, height)
       }
     }
   } catch {

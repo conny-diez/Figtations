@@ -517,3 +517,69 @@ the whole card when it only ever showed the pill.
 
 **Rationale.** The real preview is the card on the canvas — that is the entire
 point of the product (C-1). A partial second-guess of it in the panel is noise.
+
+---
+
+## D-026 · The component value links to its main component
+
+**Problem.** Requested: reach the main component from the annotation, the way
+Figma's own right-click → _Go to main component_ does, whenever the Component
+property is present.
+
+**The constraint.** A card is made of real nodes (C-1) and a plugin cannot attach
+a click handler to one. The only mechanism that makes canvas content clickable is
+a **text hyperlink**: `TextNode.hyperlink = { type: 'NODE', value: <id> }`, which
+Figma resolves as a jump to that node.
+
+**Decision.** Two entry points, because the annotation is read in two places:
+
+- **On the card**, the value text carries a NODE hyperlink and is underlined. An
+  invisible link is not a link, so the underline is deliberate even though §7 does
+  not mention it.
+- **In the panel**, the value is a button that navigates via a new read-only
+  `revealNode` request — select, switch page if needed, `scrollAndZoomIntoView`.
+
+`revealNode` is deliberately **not** in `MUTATING_REQUESTS`: navigating is reading,
+so it stays available in Dev mode, which FR-11 requires ("Liste/Filter/Navigation
+voll funktionsfähig").
+
+**Limit, by nature not by choice.** A **library** component's main component lives
+in another file, where a node id does not resolve. `ProbedProperty.link` is
+therefore only set when `mainComponent.remote === false`; for library instances the
+value renders as plain text. Figma's own menu item opens the library file, which no
+plugin API exposes.
+
+---
+
+## D-027 · The property picker closes on click-outside and Escape
+
+**Problem.** Once opened, the picker could only be dismissed by adding a property.
+Changing your mind meant adding something and removing it again.
+
+**Decision.** Click-outside, Escape and an explicit × in its header, matching the
+category dropdown, which already behaved this way.
+
+---
+
+## D-028 · The panel window is resizable
+
+**Problem.** FR-7 asks for "resizable via `figma.ui.resize`, letzte Größe in
+`figma.clientStorage`". The RPC and the persistence existed; the affordance to
+actually drag never got built, so the panel was fixed at 360 × 560.
+
+**Decision.** A grip in the bottom-right corner. Figma plugin windows are not
+natively resizable — a plugin has to drag its own corner and call
+`figma.ui.resize`.
+
+Details that matter:
+
+- The drag accumulates **pointer deltas**, not absolute coordinates. The iframe
+  resizes underneath the pointer while dragging, so its coordinate origin moves
+  with it and absolute positions would drift.
+- One `figma.ui.resize` per animation frame; `clientStorage` is written **once**,
+  on pointer-up. A resize fires ~60 times a second and persisting each one would
+  be pure waste.
+- Bounds live in `shared/types.ts` (`PANEL_SIZE`, `clampPanelSize`) so the UI and
+  the sandbox clamp identically: 300 × 320 minimum, 1600 × 1600 maximum. Clamping
+  during the drag rather than only on arrival means dragging back out of a limit
+  responds immediately instead of after an equal overshoot.

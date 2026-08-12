@@ -1,5 +1,6 @@
 /** Panel primitives (PRD §8). Plain CSS, no framework dependency. */
 import { useEffect, useRef, type ReactNode } from 'react'
+import { clampPanelSize } from '../../../shared/types'
 
 interface ButtonProps {
   children: ReactNode
@@ -280,6 +281,70 @@ export function Modal({ title, children, footer, onClose }: ModalProps): JSX.Ele
         <div className="modal__body">{children}</div>
         <footer className="modal__footer">{footer}</footer>
       </div>
+    </div>
+  )
+}
+
+interface ResizeHandleProps {
+  onResize: (width: number, height: number, persist: boolean) => void
+  label: string
+}
+
+/**
+ * Bottom-right grip that resizes the plugin window (PRD FR-7). Figma windows are
+ * not natively resizable — a plugin has to drag its own corner and call
+ * `figma.ui.resize`.
+ */
+export function ResizeHandle({ onResize, label }: ResizeHandleProps): JSX.Element {
+  const drag = useRef<{ width: number; height: number; frame: number | null } | null>(null)
+
+  const flush = (persist: boolean): void => {
+    const current = drag.current
+    if (!current) return
+    const { width, height } = clampPanelSize(current.width, current.height)
+    onResize(width, height, persist)
+  }
+
+  return (
+    <div
+      className="resize-handle"
+      role="separator"
+      aria-label={label}
+      title={label}
+      onPointerDown={(event) => {
+        event.preventDefault()
+        event.currentTarget.setPointerCapture(event.pointerId)
+        drag.current = { width: window.innerWidth, height: window.innerHeight, frame: null }
+      }}
+      onPointerMove={(event) => {
+        const current = drag.current
+        if (!current) return
+        // Deltas, not absolute coordinates: the iframe resizes underneath the
+        // pointer while dragging, which moves the coordinate origin with it.
+        const next = clampPanelSize(
+          current.width + event.movementX,
+          current.height + event.movementY
+        )
+        current.width = next.width
+        current.height = next.height
+        if (current.frame !== null) return
+        current.frame = window.requestAnimationFrame(() => {
+          current.frame = null
+          flush(false)
+        })
+      }}
+      onPointerUp={(event) => {
+        const current = drag.current
+        if (!current) return
+        if (current.frame !== null) window.cancelAnimationFrame(current.frame)
+        event.currentTarget.releasePointerCapture(event.pointerId)
+        flush(true)
+        drag.current = null
+      }}
+    >
+      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+        <path d="M11 5 L5 11 M11 9 L9 11" stroke="currentColor" strokeWidth="1" fill="none" />
+      </svg>
     </div>
   )
 }

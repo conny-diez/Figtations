@@ -27,6 +27,7 @@ export type UiRequest =
   | { t: 'duplicateFigtation'; figtationId: string }
   | { t: 'selectFigtation'; figtationId: string; zoom: boolean }
   | { t: 'selectTarget'; figtationId: string }
+  | { t: 'revealNode'; nodeId: string }
   | { t: 'reattach'; figtationId: string }
   | { t: 'keepAsFreeNote'; figtationId: string }
   | { t: 'enterPathEdit'; figtationId: string }
@@ -46,7 +47,7 @@ export type UiRequest =
   | { t: 'importNative'; scope: 'page' | 'file'; deleteSource: boolean }
   | { t: 'exportNative'; scope: 'page' | 'file' }
   | { t: 'updateSettings'; patch: Partial<Settings> }
-  | { t: 'resizeUi'; width: number; height: number }
+  | { t: 'resizeUi'; width: number; height: number; persist: boolean }
 
 export type MainEvent =
   | { t: 'state'; payload: PluginState }

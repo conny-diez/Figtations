@@ -125,6 +125,8 @@ function axisAlign(value: unknown, fallback: AxisAlign): AxisAlign {
 interface Probed {
   available: boolean
   input: PropertyInput
+  /** Node id to link to, see `ProbedProperty.link`. */
+  link?: string
 }
 
 function unavailable(type: PropertyType): Probed {
@@ -342,18 +344,24 @@ async function probeProperty(node: SceneNode, type: PropertyType): Promise<Probe
       // children of a component set after their variant combination, so for a
       // variant instance the name lives on the set, not on the main component.
       let name = ''
+      let link: string | undefined
       try {
         const main = await node.getMainComponentAsync()
         const parent = main?.parent
         if (parent && parent.type === 'COMPONENT_SET') name = parent.name
         else if (main && !looksLikeVariantName(main.name)) name = main.name
+        // Only a local main component can be navigated to; a library component
+        // lives in another file, where a node id does not resolve (D-026).
+        if (main && !main.remote) link = main.id
       } catch {
         name = ''
       }
       // Remote variants expose no set to read, so fall back to the instance's own
       // layer name — which is what the panel shows anyway.
       if (name === '') name = node.name
-      return { available: true, input: { type, raw: { k: 'component', name } } }
+      const probed: Probed = { available: true, input: { type, raw: { k: 'component', name } } }
+      if (link !== undefined) probed.link = link
+      return probed
     }
     case 'gridRowGap':
       if (layoutMode !== 'GRID') return unavailable(type)
@@ -383,16 +391,17 @@ async function probeProperty(node: SceneNode, type: PropertyType): Promise<Probe
   }
 }
 
-function toProbed(available: boolean, input: PropertyInput): ProbedProperty {
-  const formatted = formatProperty(input)
+function toProbed(probed: Probed): ProbedProperty {
+  const formatted = formatProperty(probed.input)
   const result: ProbedProperty = {
     type: formatted.type,
     key: formatted.key,
-    value: available ? formatted.value : UNKNOWN_VALUE,
-    available,
+    value: probed.available ? formatted.value : UNKNOWN_VALUE,
+    available: probed.available,
   }
   if (formatted.swatch !== undefined) result.swatch = formatted.swatch
   if (formatted.variable !== undefined) result.variable = formatted.variable
+  if (probed.link !== undefined) result.link = probed.link
   return result
 }
 
@@ -402,7 +411,7 @@ export async function probeAll(node: SceneNode): Promise<ProbedProperty[]> {
   for (const type of PROPERTY_TYPES) {
     try {
       const probed = await probeProperty(node, type)
-      result.push(toProbed(probed.available, probed.input))
+      result.push(toProbed(probed))
     } catch {
       // An unknown or failing property must never break the panel (PRD FR-3).
       result.push({
@@ -425,7 +434,7 @@ export async function probeSelected(
   for (const type of types) {
     try {
       const probed = await probeProperty(node, type)
-      result.push(toProbed(probed.available, probed.input))
+      result.push(toProbed(probed))
     } catch {
       result.push({
         type,

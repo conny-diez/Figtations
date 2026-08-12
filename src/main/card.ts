@@ -241,6 +241,41 @@ async function renderLabel(
   return { labelFromCanvas: null, present: true }
 }
 
+/**
+ * Turns a value into a clickable jump to another node, the equivalent of Figma's
+ * own "Go to main component" (DECISIONS.md D-026). A NODE hyperlink is the only
+ * way to make canvas content clickable — a plugin cannot attach handlers to a
+ * node. Underlined, because a link nobody can see is not a link.
+ */
+async function applyLink(text: TextNode, nodeId: string | undefined): Promise<void> {
+  const current = text.hyperlink
+  if (nodeId === undefined) {
+    if (current !== null) {
+      await ensureLoaded(text.fontName)
+      text.hyperlink = null
+    }
+    if (text.textDecoration !== 'NONE') {
+      await ensureLoaded(text.fontName)
+      text.textDecoration = 'NONE'
+    }
+    return
+  }
+  const target: HyperlinkTarget = { type: 'NODE', value: nodeId }
+  const same =
+    current !== null &&
+    current !== figma.mixed &&
+    current.type === target.type &&
+    current.value === target.value
+  if (!same) {
+    await ensureLoaded(text.fontName)
+    text.hyperlink = target
+  }
+  if (text.textDecoration !== 'UNDERLINE') {
+    await ensureLoaded(text.fontName)
+    text.textDecoration = 'UNDERLINE'
+  }
+}
+
 async function renderValue(
   row: FrameNode,
   probed: ProbedProperty,
@@ -323,11 +358,13 @@ async function renderValue(
     text.name = 'value-text'
     text.textAlignHorizontal = 'RIGHT'
     container.appendChild(text)
+    await applyLink(text, probed.link)
     return false
   }
 
   if (text.parent !== container) container.appendChild(text)
   text.fills = [solid(wantsChip ? theme.tokenChipText : theme.propertyValueText)]
+  await applyLink(text, probed.link)
   const changed = await setCharacters(text, probed.value)
   return changed && input.source === 'sync'
 }
