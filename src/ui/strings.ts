@@ -1,8 +1,8 @@
 /** All user-facing strings in one place (PRD NFR-7). English only in v1. */
 export const strings = {
   appName: 'Figtations',
-  /** Injected from package.json at build time — see vite.config.ts. */
-  version: `v${__APP_VERSION__}`,
+  /** Major.minor injected from package.json at build time — see vite.config.ts. */
+  version: `Beta V${__APP_VERSION__.split('.').slice(0, 2).join('.')}`,
   close: 'Close plugin',
   theme: { label: 'Panel theme', dark: 'Dark', light: 'Light' },
   tabs: { annotate: 'Annotate', all: 'All' },
