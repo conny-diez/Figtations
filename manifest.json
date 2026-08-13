@@ -1,0 +1,24 @@
+{
+  "name": "Figtations",
+  "id": "1417382967104512873",
+  "api": "1.0.0",
+  "main": "dist/main.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma", "dev"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": { "allowedDomains": ["none"] },
+  "capabilities": [],
+  "menu": [
+    { "name": "Open Figtations", "command": "open" },
+    { "separator": true },
+    { "name": "Annotate selection", "command": "annotate-selection" },
+    { "name": "Refresh all on this page", "command": "refresh-page" },
+    { "name": "Arrange annotations", "command": "arrange" },
+    { "separator": true },
+    { "name": "Import native annotations", "command": "import-native" }
+  ],
+  "relaunchButtons": [
+    { "command": "edit", "name": "Edit annotation" },
+    { "command": "refresh-page", "name": "Refresh annotations" }
+  ]
+}
