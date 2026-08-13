@@ -1,6 +1,6 @@
 {
   "name": "figtations",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "private": true,
   "description": "Figma plugin: annotations you can actually move.",
   "type": "module",

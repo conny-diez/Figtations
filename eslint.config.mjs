@@ -1,7 +1,9 @@
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**', 'coverage/**'] },
+  // `.context/**` is the Conductor scratch directory: build output gets staged
+  // there, and linting a minified bundle produces nothing but noise.
+  { ignores: ['dist/**', 'node_modules/**', 'coverage/**', '.context/**'] },
   ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],

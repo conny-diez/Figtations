@@ -52,6 +52,13 @@ _Plugins → Development → Hot reload plugin_ in Figma after a change.
 | `npm run test`      | vitest (pure functions: formatters, geometry, store)           |
 | `npm run verify`    | typecheck + lint + test + build — the gate for every milestone |
 
+`scripts/build-release.sh` produces the release artifact — a zip with
+`manifest.json` and `dist/` that imports straight into Figma. It runs a clean
+install, the full gate, the build, packs from a staging directory outside the
+repo, then re-extracts the archive and diffs it against `dist/` before printing
+the size and SHA-256. It fails on the first red step, so a broken gate cannot
+produce a zip. Output goes to `.context/release/`, which is gitignored.
+
 ## Architecture in one screen
 
 ```
@@ -123,6 +130,10 @@ can read your annotations.
 ## Status
 
 All eleven milestones from the PRD are implemented and the automated gate
-(`npm run verify`) is green. The manual acceptance runs in `docs/QA.md` are open,
-and the M7 spike (native vector edit mode) needs a human in the Figma desktop
-client — see DECISIONS.md D-003 and D-014.
+(`npm run verify`) is green. The M7 spike is done: Route A path editing was
+verified in the Figma desktop client, so Route B is dropped (D-003). The manual
+acceptance pass is mostly open — 12 of 138 criteria in `docs/QA.md` are ticked,
+covering the automated gate and a functional smoke test (D-014).
+
+Released as `v1.0.0-beta.1`. The plugin list shows it as **Figtations (Beta)**;
+that suffix comes out at the first stable release (D-032).

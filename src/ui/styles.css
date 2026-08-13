@@ -169,20 +169,29 @@ select {
   width: 24px;
 }
 
+/* A prerelease version is long. At the 300px minimum the name gives way first —
+   truncating "Figtations" costs nothing, truncating a version number misreports
+   the build. */
 .appbar__title {
   color: var(--text-hi);
   font-size: 13px;
   font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .appbar__version {
   color: var(--text-low);
+  flex: none;
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 500;
   letter-spacing: 0.14em;
   margin-left: auto;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .appbar__close {

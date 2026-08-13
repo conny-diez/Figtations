@@ -1,8 +1,14 @@
 # QA checklist
 
-Taken from PRD §11 plus the acceptance criteria of every FR. **Nothing here is
-ticked yet** — every box needs a human in the Figma desktop client (see
-DECISIONS.md, D-014).
+Taken from PRD §11 plus the acceptance criteria of every FR. Every box needs a
+human in the Figma desktop client (see DECISIONS.md, D-014).
+
+**Status: 12 of 138 ticked.** A first functional pass was run against
+`1.0.0-beta.1` on 2026-08-13 — the automated gate, plus a smoke test in the
+desktop client covering creation, path editing and reconciliation. A box is
+ticked only where that pass actually exercised it; adjacent criteria that look
+covered but were not explicitly run are deliberately left open. The remaining 126
+are untouched, and D-014 stays open until they are not.
 
 How to run: `npm run build`, then in Figma → _Plugins → Development → Import
 plugin from manifest…_ → pick `manifest.json` in the repo root.
@@ -11,10 +17,10 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 
 ## Automated gate (run before every manual pass)
 
-- [ ] `npm run typecheck` — both contexts, no errors
-- [ ] `npm run lint` — 0 errors
-- [ ] `npm run test` — all green, formatter coverage ≥ 90 %
-- [ ] `npm run build` — `dist/main.js` and `dist/ui.html` written
+- [x] `npm run typecheck` — both contexts, no errors
+- [x] `npm run lint` — 0 errors
+- [x] `npm run test` — all green, formatter coverage ≥ 90 % (76 tests, 98.9 %)
+- [x] `npm run build` — `dist/main.js` and `dist/ui.html` written
 
 ---
 
@@ -36,7 +42,7 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 
 - [ ] Typing a label or adding a property places **nothing** on the canvas yet
 - [ ] The CTA is disabled while label and properties are both empty
-- [ ] _Create annotation_ places the card; target layout unchanged
+- [x] _Create annotation_ places the card; target layout unchanged
 - [ ] Cmd+Enter in the label field creates it too; plain Enter inserts a newline
 - [ ] Abandoning a draft (change selection) leaves no card behind
 - [ ] Target stays selected after creation
@@ -93,10 +99,10 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 
 ## FR-5b · Path editing (Route A)
 
-- [ ] `Edit line` selects and unlocks the connector, the hint appears
-- [ ] `Enter` opens Figma's vector edit mode, handles are visible and draggable
-- [ ] Drag a segment → new corner, rounded, both ends still attached
-- [ ] `Done` → waypoints stored, connector locked again
+- [x] `Edit line` selects and unlocks the connector, the hint appears
+- [x] `Enter` opens Figma's vector edit mode, handles are visible and draggable
+- [x] Drag a segment → new corner, rounded, both ends still attached
+- [x] `Done` → waypoints stored, connector locked again
 - [ ] Move the card afterwards → the curved shape travels with it
 - [ ] Move the target afterwards → only the last segment follows
 - [ ] A bend-tool curve survives three sync rounds
@@ -176,13 +182,13 @@ plugin from manifest…_ → pick `manifest.json` in the repo root.
 
 ## FR-12 · Canvas edits & reconciliation
 
-- [ ] Rewrite the label on the canvas → the panel shows the new text, no reset
-- [ ] Rewrite the label in the panel → the canvas text follows
+- [x] Rewrite the label on the canvas → the panel shows the new text, no reset
+- [x] Rewrite the label in the panel → the canvas text follows
 - [ ] Alternate quickly between both → no flicker, no loop, no text loss
 - [ ] Rewrite the category pill on the canvas → reset, exactly one toast
 - [ ] Rewrite a property value / key → reset
 - [ ] Delete a property row → restored with a toast
-- [ ] Change the card fill to red, then change the label in the panel → red survives
+- [x] Change the card fill to red, then change the label in the panel → red survives
 - [ ] Change card radius and padding → survive a sync
 - [ ] Resize the card wider → `widthOverride` set, panel offers a reset
 - [ ] Resize the card taller → snaps back to hug
