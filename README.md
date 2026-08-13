@@ -83,6 +83,18 @@ The sandbox and the UI have **separate tsconfigs** on purpose: the sandbox has n
 DOM, no `window`, no `fetch`, no `localStorage`. ESLint enforces that, so code
 that would crash at runtime fails the lint instead.
 
+## Brand assets
+
+`assets/figtations-logo-dark.svg` and `-light.svg` are the mark: an annotation
+card on a leader line with a dot at the anchor. They differ only in the neutral
+stroke (`#ECECEF` for dark backgrounds, `#333333` for light); the yellow and
+orange accents are fixed.
+
+The panel does not load either file — `src/ui/components/Logo.tsx` draws the same
+geometry inline with `currentColor` for the neutral parts, so it needs no asset
+pipeline and follows whatever `color` the header sets. The SVGs are here for the
+places outside the bundle: the Figma Community listing icon, docs, slides.
+
 ## Privacy
 
 `networkAccess` is `none`. The plugin sends nothing anywhere, has no telemetry and

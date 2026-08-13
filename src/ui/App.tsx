@@ -15,6 +15,7 @@ import { strings } from './strings'
 import { AnnotationList } from './components/AnnotationList'
 import { CategoryManager } from './components/CategoryManager'
 import { Editor } from './components/Editor'
+import { Logo } from './components/Logo'
 import { SettingsPanel } from './components/SettingsPanel'
 import { Button, ResizeHandle, Toasts, type ToastMessage } from './components/primitives'
 
@@ -269,8 +270,8 @@ export function App(): JSX.Element {
   return (
     <div className="app">
       <header className="appbar">
-        <span className="appbar__mark" aria-hidden="true">
-          &lt;/&gt;
+        <span className="appbar__mark">
+          <Logo />
         </span>
         <span className="appbar__title">{strings.appName}</span>
         <button

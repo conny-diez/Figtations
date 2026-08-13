@@ -105,19 +105,16 @@ select {
   padding: 16px 18px 14px;
 }
 
+/* The mark carries its own accents, so it sits on the shell rather than on a
+   tile. `color` drives the neutral stroke — the dark variant of the original. */
 .appbar__mark {
   align-items: center;
-  background: var(--accent);
-  border-radius: 10px;
-  color: var(--on-accent);
+  color: #ececef;
   display: flex;
   flex: none;
-  font-size: 14px;
-  font-weight: 800;
-  height: 34px;
+  height: 40px;
   justify-content: center;
-  letter-spacing: -0.5px;
-  width: 34px;
+  width: 40px;
 }
 
 .appbar__title {
