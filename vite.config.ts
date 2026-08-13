@@ -1,6 +1,11 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { viteSingleFile } from 'vite-plugin-singlefile'
+
+const { version } = JSON.parse(readFileSync(new URL('package.json', import.meta.url), 'utf8')) as {
+  version: string
+}
 
 /**
  * The manifest points at `dist/ui.html`, Vite emits `index.html`. Renaming in
@@ -26,6 +31,8 @@ function renameHtml(): Plugin {
 export default defineConfig({
   root: 'src/ui',
   plugins: [react(), viteSingleFile(), renameHtml()],
+  // The header shows the version; reading it here keeps it from drifting.
+  define: { __APP_VERSION__: JSON.stringify(version) },
   build: {
     target: 'es2020',
     outDir: '../../dist',

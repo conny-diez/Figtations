@@ -1,7 +1,10 @@
 /** All user-facing strings in one place (PRD NFR-7). English only in v1. */
 export const strings = {
   appName: 'Figtations',
+  /** Injected from package.json at build time — see vite.config.ts. */
+  version: `v${__APP_VERSION__}`,
   close: 'Close plugin',
+  theme: { label: 'Panel theme', dark: 'Dark', light: 'Light' },
   tabs: { annotate: 'Annotate', all: 'All' },
 
   devModeBanner: 'Read-only in Dev mode — switch to Design mode to edit',
@@ -67,7 +70,8 @@ export const strings = {
     refresh: 'Refresh',
     arrange: 'Arrange',
     settings: 'Settings',
-    counter: (count: number) => `${count} annotation${count === 1 ? '' : 's'} on this page`,
+    // The panel is page-scoped, so "on this page" only cost width in the footer.
+    counter: (count: number) => `${count} annotation${count === 1 ? '' : 's'}`,
   },
 
   categories: {

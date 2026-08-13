@@ -12,6 +12,7 @@ import {
   SETTINGS_RANGES,
   clampPanelSize,
   type FigtationSummary,
+  type PanelTheme,
   type PluginState,
   type RouteState,
   type SelectionContext,
@@ -61,6 +62,13 @@ import {
 } from './sync'
 
 const PANEL_SIZE_KEY = 'panelSize'
+const PANEL_THEME_KEY = 'panelTheme'
+
+/**
+ * Read once at startup and kept here: `pluginState()` runs on every push, and
+ * `clientStorage` is an async round trip that would otherwise ride along.
+ */
+let panelTheme: PanelTheme = 'dark'
 const DEFAULT_PANEL = { width: PANEL_SIZE.defaultWidth, height: PANEL_SIZE.defaultHeight }
 
 const readOnly = figma.editorType === 'dev'
@@ -155,6 +163,7 @@ async function pluginState(): Promise<PluginState> {
     list: await listSummaries(figma.currentPage),
     pageName: figma.currentPage.name,
     pathEditFigtationId: pathEditTarget(),
+    panelTheme,
   }
 }
 
@@ -549,6 +558,13 @@ async function handle(request: UiRequest): Promise<unknown> {
       figma.closePlugin()
       return null
     }
+
+    case 'setPanelTheme': {
+      panelTheme = request.theme
+      // A personal preference, so clientStorage rather than the document.
+      await figma.clientStorage.setAsync(PANEL_THEME_KEY, request.theme)
+      return null
+    }
   }
 }
 
@@ -571,6 +587,16 @@ async function panelSize(): Promise<{ width: number; height: number }> {
     // clientStorage may be unavailable; fall through to the default.
   }
   return DEFAULT_PANEL
+}
+
+async function loadPanelTheme(): Promise<PanelTheme> {
+  try {
+    const stored: unknown = await figma.clientStorage.getAsync(PANEL_THEME_KEY)
+    if (stored === 'light' || stored === 'dark') return stored
+  } catch {
+    // clientStorage may be unavailable; dark is the default (DESIGN.md §4).
+  }
+  return 'dark'
 }
 
 function registerListeners(): void {
@@ -643,6 +669,7 @@ async function openUi(): Promise<void> {
 async function bootstrap(): Promise<void> {
   ensureSchema()
   await ensureCategories()
+  panelTheme = await loadPanelTheme()
 
   if (!readOnly) {
     try {

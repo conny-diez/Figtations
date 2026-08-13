@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="7 9 49 46"><title>Figtations</title>
+  <g stroke="currentColor" stroke-width="6" stroke-linecap="round">
+    <line x1="12" y1="14" x2="12" y2="50"></line>
+    <line x1="12" y1="14" x2="20" y2="14"></line>
+    <line x1="12" y1="50" x2="20" y2="50"></line>
+  </g>
+  <rect x="31" y="21" width="23" height="7" rx="3.5" fill="#FFD60A"></rect>
+  <rect x="31" y="36" width="14" height="7" rx="3.5" fill="currentColor" opacity="0.4"></rect>
+</svg>

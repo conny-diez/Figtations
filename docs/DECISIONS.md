@@ -678,3 +678,47 @@ The mark keeps its own yellow and orange. It is a logo, not a control.
 one step tighter, default panel 420 × 780 → **380 × 620**. The mock is a poster
 at 1:1; inside a real plugin window that much air pushes the property list below
 the fold.
+
+---
+
+## D-031 · The panel implements DESIGN.md, in both themes
+
+**Problem.** The panel had been styled twice from screenshots — once against a
+mock, once tightened by hand. Both times the values lived only in `styles.css`,
+so "what is the accent" had no answer outside the code. `DESIGN.md` now states
+the system: tokens, type scale, geometry, component specs, and eight rules.
+
+**Decision.** `DESIGN.md` in the repo root is the source. `src/ui/styles.css`
+maps it onto the markup and holds no values of its own beyond that mapping. Both
+themes ship.
+
+What this took beyond a repaint:
+
+- **Two token sets, one rule set.** Dark is `:root`, light is
+  `[data-theme='light']` remapping the same names. No rule below the token block
+  knows which theme is on, and `color-scheme` flips with them so native scrollbars
+  and form controls follow.
+- **A panel theme distinct from `Settings.theme`.** That one is the theme of the
+  cards on the canvas: it belongs to the document and everyone in the file sees
+  it. The panel's theme is one person's preference, so it lives in
+  `clientStorage` next to the panel size, reaches the UI through `PluginState`,
+  and is read once at startup rather than on every state push.
+- **The fonts are compiled in.** DESIGN.md §2 names Plus Jakarta Sans and
+  JetBrains Mono. NFR-3 forbids loading anything, and naming a font you cannot
+  ship means most machines get a substitute. The latin woff2 for the seven weights
+  the design actually uses are inlined as data URIs by the existing
+  `assetsInlineLimit`, which costs ~155 KB of `ui.html` and no network at all.
+- **One CTA per surface (rule 1).** Refresh is the yellow button — except while a
+  draft is on screen, when Create takes it and Refresh steps down to secondary. A
+  modal is its own surface, so its confirm may be yellow again.
+- **Native elements keep their jobs.** The 32×18 toggle is a real checkbox with
+  its paint removed; the stepped slider is 20 painted bars with a transparent
+  `input[type=range]` on top. Both keep dragging, arrow keys, labels and
+  screen-reader semantics that a div would have to re-implement badly.
+- **Hints moved to the footer** (rule 8). The standing rule ("nothing is placed
+  until you create it") is the footer's hint row; the inline line under the CTA
+  now says only what is blocking right now.
+
+**Consequence.** The panel starts at 320 × 700, the width DESIGN.md §3 specifies.
+The old defaults keep applying to anyone who has dragged the panel before — the
+stored size wins, by design (D-028).

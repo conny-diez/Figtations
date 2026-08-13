@@ -9,6 +9,7 @@ import type {
   FigtationDraft,
   FigtationSummary,
   NativeScanResult,
+  PanelTheme,
   ProbedProperty,
   PluginState,
   RouteMode,
@@ -49,6 +50,7 @@ export type UiRequest =
   | { t: 'updateSettings'; patch: Partial<Settings> }
   | { t: 'resizeUi'; width: number; height: number; persist: boolean }
   | { t: 'closePlugin' }
+  | { t: 'setPanelTheme'; theme: PanelTheme }
 
 export type MainEvent =
   | { t: 'state'; payload: PluginState }

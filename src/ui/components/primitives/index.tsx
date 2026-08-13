@@ -6,10 +6,10 @@ interface ButtonProps {
   children: ReactNode
   onClick?: () => void
   /**
-   * `primary` is yellow and belongs to the two canvas-writing actions only —
-   * create and refresh (D-030). Confirms elsewhere use `strong` (white).
+   * `primary` is the yellow CTA. DESIGN.md rule 1 allows exactly one per visible
+   * surface — a modal counts as its own surface, the panel behind it does not.
    */
-  variant?: 'primary' | 'strong' | 'secondary' | 'ghost' | 'danger' | 'dashed'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'dashed'
   disabled?: boolean
   title?: string
   ariaLabel?: string
@@ -157,16 +157,24 @@ interface ToggleProps {
   disabled?: boolean
 }
 
+/**
+ * 32×18 switch (DESIGN.md §4). The native checkbox stays in the markup and only
+ * loses its paint: it keeps the label association, the focus behaviour and the
+ * screen-reader semantics that a div would have to re-implement.
+ */
 export function Toggle({ checked, onChange, label, disabled }: ToggleProps): JSX.Element {
   return (
     <label className="toggle">
+      <span className="toggle__label">{label}</span>
       <input
         type="checkbox"
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
       />
-      <span>{label}</span>
+      <span className="toggle__track" aria-hidden="true">
+        <span className="toggle__knob" />
+      </span>
     </label>
   )
 }
@@ -215,6 +223,15 @@ interface SliderProps {
   disabled?: boolean
 }
 
+/** DESIGN.md §4: 20 bars, filled ones grow with the index. */
+const SLIDER_STEPS = 20
+
+/**
+ * Stepped slider (DESIGN.md §4). The bars are the picture; the native range sits
+ * on top at zero opacity and keeps the dragging, the arrow keys and the
+ * announced value. Painting bars on top of a real input is the only way to get
+ * both — a range element cannot be styled into 20 separate marks.
+ */
 export function Slider({
   value,
   min,
@@ -224,20 +241,50 @@ export function Slider({
   label,
   disabled,
 }: SliderProps): JSX.Element {
+  const span = max - min
+  const filled = span <= 0 ? 0 : Math.round(((value - min) / span) * SLIDER_STEPS)
+
   return (
-    <div className="slider">
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        aria-label={label}
-        disabled={disabled}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-      <span className="slider__value">{value}</span>
+    <div className={`slider${disabled ? ' slider--disabled' : ''}`}>
+      <div className="slider__head">
+        <span className="field__label">{label}</span>
+        <span className="slider__value">{value}</span>
+      </div>
+      <div className="slider__track">
+        {Array.from({ length: SLIDER_STEPS }, (_, index) => (
+          <span
+            key={index}
+            className={`slider__bar${index < filled ? ' is-filled' : ''}`}
+            style={index < filled ? { height: `${6 + index * 0.6}px` } : undefined}
+          />
+        ))}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          aria-label={label}
+          disabled={disabled}
+          onChange={(event) => onChange(Number(event.target.value))}
+        />
+      </div>
     </div>
+  )
+}
+
+/**
+ * Procedural hint (DESIGN.md §4 footer, rule 8): an `i` circle and 10px text in
+ * `text/low`. Never coloured — a hint is not a warning.
+ */
+export function HintRow({ children }: { children: ReactNode }): JSX.Element {
+  return (
+    <p className="hint-row">
+      <span className="hint-row__icon" aria-hidden="true">
+        i
+      </span>
+      <span>{children}</span>
+    </p>
   )
 }
 

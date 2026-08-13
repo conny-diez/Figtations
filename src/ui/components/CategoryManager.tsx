@@ -151,7 +151,7 @@ export function CategoryManager({
             {strings.categories.cancel}
           </Button>
           <Button
-            variant="strong"
+            variant="primary"
             onClick={() =>
               onCommit(
                 drafts.map((draft, index) => ({

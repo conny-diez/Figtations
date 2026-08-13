@@ -1047,33 +1047,25 @@ Exakt die 8 Werte aus `AnnotationCategoryColor` (C-5). Hex-Werte sind an die Scr
 
 ## 8. Plugin-UI (Panel) — Stil
 
-Das Panel folgt dem Figtations-Design-Mock: fast schwarze Shell, abgesetzte Karten
-auf weichen Rändern, kompakte Typo. **Keine** privaten Figma-Assets.
+Der Stil steht in **`DESIGN.md`** im Repo-Root. Das ist die Quelle; `src/ui/styles.css`
+bildet sie nur ab und definiert selbst keine Werte. Diese Tabelle wiederholt sie
+nicht — sie hält nur fest, was das Plugin darüber hinaus festlegt:
 
-| Token              | Wert                                                                                    |
-| ------------------ | --------------------------------------------------------------------------------------- |
-| `--bg`             | `#131417` (Shell), `--bg-bar` `#16171B` (Footer)                                        |
-| `--surface`        | `#1C1D22` (Karten, Inputs, Buttons), `--surface-raised` `#1F2026` (aktiver Tab)         |
-| `--active`         | `#2C2D34` + Rand `#3A3B44` — **der** Selected-State: Segment, Chip, Token-Chip          |
-| `--border`         | `#26272E`, `--border-strong` `#2E2F37`, `--border-hover` `#3A3B44`                      |
-| `--text`           | `#F4F4F5`                                                                               |
-| `--text-secondary` | `#A9AAB2`, `--text-muted` `#8C8E97`, `--text-dim` `#7D7F88` (Section-Labels)            |
-| `--accent`         | `#FFD52E`, Hover `#FFE266` — **nur** Create und Refresh (D-030)                         |
-| `--strong`         | `#ECECEF` — Confirms ohne Canvas-Schreibzugriff, aktive Tab-Kante                       |
-| `--focus`          | `#D6D7DD` (2px Focus-Ring)                                                              |
-| `--danger`         | `#FF6B57`, Rand `#57231C`, Hover-Fläche `#2A1310`                                       |
-| Font               | `Manrope, Inter, system-ui, sans-serif`, Basis 12px, Inputs 12.5px, Section-Labels 10px |
-| Radius             | 12 (Karten), 10 (Inputs), 9 (Buttons), 8 (Segmente), 6 (Icon-Buttons), 14 (Modals)      |
-| Row-Höhe           | 32                                                                                      |
-| Panel-Startgröße   | 380 × 620                                                                               |
+| Punkt            | Wert                                                                     |
+| ---------------- | ------------------------------------------------------------------------ |
+| Panel-Startgröße | 320 × 700 (Breite aus DESIGN.md §3), min. 300 × 320, resizable (FR-7)    |
+| Panel-Theme      | Dark ist Default, Umschalter im Header, Wert in `clientStorage`          |
+| Fonts            | Plus Jakarta Sans + JetBrains Mono, als woff2 in `ui.html` einkompiliert |
+| CTA              | Gelb nur auf Create bzw. Refresh — nie beide gleichzeitig (D-031)        |
 
-Section-Labels sind 10px/700, `letter-spacing: .08em`, Uppercase. Der Wortmarke
-reicht 14px/600 — das Logo trägt die Betonung.
+`Settings.theme` ist **nicht** dieses Theme: das ist das Theme der Karten auf dem
+Canvas, gehört zum Dokument und wird geteilt. Das Panel-Theme ist persönlich.
 
-Manrope wird nur benutzt, wenn das Betriebssystem sie hat — NFR-3 verbietet externe
-Fonts, also wird nichts nachgeladen und die Kette fällt auf Inter/`system-ui` zurück.
+NFR-3 verbietet externe Fonts. Die beiden Schriften werden deshalb nicht geladen,
+sondern beim Build als Data-URI in `dist/ui.html` gelegt — kein Netzverkehr, aber
+die Typografie aus DESIGN.md §2 statt einer Ersatzschrift.
 
-**Accessibility:** Vollständige Tastaturbedienbarkeit (Tab-Order, Enter/Escape in Modals, Arrow-Keys in Dropdowns), sichtbarer 2px Focus-Ring in `--focus`, `aria-label` auf allen Icon-only-Buttons, Kontrast ≥ 4.5:1 für Text. Kategorien werden **nie** nur über Farbe kommuniziert — immer Farbe + Label.
+**Accessibility:** Vollständige Tastaturbedienbarkeit (Tab-Order, Enter/Escape in Modals, Arrow-Keys in Dropdowns), sichtbarer 2px Focus-Ring in `--border-active`, `aria-label` auf allen Icon-only-Buttons, Kontrast ≥ 4.5:1 für Text. Kategorien werden **nie** nur über Farbe kommuniziert — immer Farbe + Label. Toggle und Slider behalten ihr natives Element unter der Gestaltung, damit Tastatur und Screenreader unverändert funktionieren.
 
 ---
 

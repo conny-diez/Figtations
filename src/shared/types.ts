@@ -234,10 +234,17 @@ export const DEFAULT_SETTINGS: Settings = {
   arrangeSide: 'right',
 }
 
-/** Panel size bounds. Compact type, so the panel stays small — resizable (FR-7). */
+/**
+ * The panel's own theme, as opposed to `Settings.theme`, which is the theme of
+ * the cards on the canvas. This one is a personal preference and lives in
+ * `clientStorage`; that one belongs to the document and is shared.
+ */
+export type PanelTheme = 'dark' | 'light'
+
+/** DESIGN.md §3 puts the panel at 320px wide. It stays resizable (FR-7). */
 export const PANEL_SIZE = {
-  defaultWidth: 380,
-  defaultHeight: 620,
+  defaultWidth: 320,
+  defaultHeight: 700,
   minWidth: 300,
   minHeight: 320,
   maxWidth: 1600,
@@ -312,4 +319,5 @@ export interface PluginState {
   list: FigtationSummary[]
   pageName: string
   pathEditFigtationId: string | null
+  panelTheme: PanelTheme
 }

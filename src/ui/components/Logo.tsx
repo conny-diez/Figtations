@@ -1,48 +1,53 @@
 /**
- * The Figtations mark: an annotation card on a leader line with a dot at the
- * anchor — the product in one glyph.
+ * The Figtations mark (DESIGN.md §5): a bracket with two bands — the annotation
+ * and its target, in one glyph.
  *
- * The originals live in `assets/figtations-logo-{dark,light}.svg`. The only
- * difference between them is the neutral stroke (`#ECECEF` on dark, `#333333`
- * on light), so here it is `currentColor` and one component covers both: set
- * `color` on the parent. The two accent fills are brand colours and stay fixed.
+ * The originals live in `assets/figtations-mark-{dark,light,mono}.svg`. Dark and
+ * light differ only in the bracket and the second band, so here the bracket is
+ * `currentColor` and the cold band is `--tone-700`; both follow the theme with
+ * no second copy of the geometry.
+ *
+ * The bright band is the one accent the mark is allowed (DESIGN.md rule 1 grants
+ * the logo exactly one).
+ *
+ * At 24px and below the design calls for its own drawing rather than a scaled
+ * one: stroke 6 instead of 4, tighter bands, a cropped viewBox. Hairlines that
+ * thin do not survive the pixel grid.
  */
 interface LogoProps {
   size?: number
 }
 
-export function Logo({ size = 30 }: LogoProps): JSX.Element {
+/** Below this the small-size drawing takes over (DESIGN.md §5). */
+const SMALL_SIZE_LIMIT = 24
+
+export function Logo({ size = 16 }: LogoProps): JSX.Element {
+  const small = size <= SMALL_SIZE_LIMIT
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 128 128"
+      viewBox={small ? '7 9 49 46' : '0 0 64 64'}
       fill="none"
       aria-hidden="true"
       focusable="false"
     >
-      <rect
-        x="46"
-        y="31"
-        width="68"
-        height="66"
-        rx="15"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="9"
-      />
-      <rect x="60" y="50" width="38" height="9" rx="4.5" fill="#FFDD00" />
-      <rect x="60" y="69" width="24" height="9" rx="4.5" fill="#FF8A00" />
-      <line
-        x1="28"
-        y1="64"
-        x2="46"
-        y2="64"
-        stroke="currentColor"
-        strokeWidth="9"
-        strokeLinecap="round"
-      />
-      <circle cx="17" cy="64" r="11" fill="#FFDD00" />
+      <g stroke="currentColor" strokeWidth={small ? 6 : 4} strokeLinecap="round">
+        <line x1="12" y1="14" x2="12" y2="50" />
+        <line x1="12" y1="14" x2="20" y2="14" />
+        <line x1="12" y1="50" x2="20" y2="50" />
+      </g>
+      {small ? (
+        <>
+          <rect x="31" y="21" width="23" height="7" rx="3.5" fill="var(--cta)" />
+          <rect x="31" y="36" width="14" height="7" rx="3.5" fill="var(--tone-700)" />
+        </>
+      ) : (
+        <>
+          <rect x="30" y="22" width="24" height="6" rx="3" fill="var(--cta)" />
+          <rect x="30" y="36" width="15" height="6" rx="3" fill="var(--tone-700)" />
+        </>
+      )}
     </svg>
   )
 }

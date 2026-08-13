@@ -17,7 +17,8 @@ import { CategoryManager } from './components/CategoryManager'
 import { Editor } from './components/Editor'
 import { Logo } from './components/Logo'
 import { SettingsPanel } from './components/SettingsPanel'
-import { Button, ResizeHandle, Toasts, type ToastMessage } from './components/primitives'
+import { ThemeSwitcher } from './components/ThemeSwitcher'
+import { Button, HintRow, ResizeHandle, Toasts, type ToastMessage } from './components/primitives'
 
 type Tab = 'annotate' | 'all'
 
@@ -142,6 +143,13 @@ export function App(): JSX.Element {
     )
   }, [probeTargetId, probedFor, run])
 
+  // The theme lands on <html> so the tokens in styles.css and the native
+  // controls (color-scheme) flip together.
+  const panelTheme = state?.panelTheme ?? 'dark'
+  useEffect(() => {
+    document.documentElement.dataset['theme'] = panelTheme
+  }, [panelTheme])
+
   if (!state) {
     return <div className="app app--loading">Loading…</div>
   }
@@ -149,6 +157,15 @@ export function App(): JSX.Element {
   const readOnly = state.readOnly
   const pathEditing =
     state.pathEditFigtationId !== null && state.pathEditFigtationId === editing?.id
+  /** A draft is on screen: the Editor shows its CTA instead of an edit form. */
+  const creating = tab === 'annotate' && editing === null && targets.length > 0
+  // DESIGN.md rule 8: procedural hints live at the end of the panel, in the
+  // footer's own row, never inline and never coloured.
+  const footerHint = pathEditing
+    ? strings.editor.pathEditHint
+    : creating
+      ? strings.editor.createHint
+      : null
 
   const patchEditing = (patch: {
     categoryId?: string
@@ -271,9 +288,17 @@ export function App(): JSX.Element {
     <div className="app">
       <header className="appbar">
         <span className="appbar__mark">
-          <Logo />
+          <Logo size={16} />
         </span>
         <span className="appbar__title">{strings.appName}</span>
+        <span className="appbar__version">{strings.version}</span>
+        <ThemeSwitcher
+          value={state.panelTheme}
+          onChange={(theme) => {
+            setState((current) => (current ? { ...current, panelTheme: theme } : current))
+            void request({ t: 'setPanelTheme', theme }).catch(() => undefined)
+          }}
+        />
         <button
           type="button"
           className="appbar__close"
@@ -362,41 +387,46 @@ export function App(): JSX.Element {
       </main>
 
       <footer className="footer">
-        <Button
-          variant="primary"
-          disabled={readOnly}
-          onClick={() => {
-            void run(request({ t: 'refresh', scope: 'page' })).then(refreshState)
-          }}
-        >
-          {strings.footer.refresh}
-        </Button>
-        <Button
-          disabled={readOnly}
-          onClick={() => {
-            void run(
-              request({
-                t: 'arrange',
-                scope: 'page',
-                options: {
-                  gutter: state.settings.arrangeGutter,
-                  side: state.settings.arrangeSide,
-                },
-              })
-            ).then(refreshState)
-          }}
-        >
-          {strings.footer.arrange}
-        </Button>
-        <Button
-          square
-          ariaLabel={strings.footer.settings}
-          title={strings.footer.settings}
-          onClick={() => setSettingsOpen(true)}
-        >
-          ⚙
-        </Button>
-        <span className="footer__counter">{strings.footer.counter(state.list.length)}</span>
+        <div className="footer__actions">
+          <Button
+            // DESIGN.md rule 1: one yellow per surface. While a draft is on screen
+            // the CTA is Create, so Refresh steps back to secondary.
+            variant={creating ? 'secondary' : 'primary'}
+            disabled={readOnly}
+            onClick={() => {
+              void run(request({ t: 'refresh', scope: 'page' })).then(refreshState)
+            }}
+          >
+            {strings.footer.refresh}
+          </Button>
+          <Button
+            disabled={readOnly}
+            onClick={() => {
+              void run(
+                request({
+                  t: 'arrange',
+                  scope: 'page',
+                  options: {
+                    gutter: state.settings.arrangeGutter,
+                    side: state.settings.arrangeSide,
+                  },
+                })
+              ).then(refreshState)
+            }}
+          >
+            {strings.footer.arrange}
+          </Button>
+          <Button
+            square
+            ariaLabel={strings.footer.settings}
+            title={strings.footer.settings}
+            onClick={() => setSettingsOpen(true)}
+          >
+            ⚙
+          </Button>
+          <span className="footer__counter">{strings.footer.counter(state.list.length)}</span>
+        </div>
+        {footerHint !== null && <HintRow>{footerHint}</HintRow>}
       </footer>
 
       {categoriesOpen && (

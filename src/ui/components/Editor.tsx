@@ -273,9 +273,9 @@ export function Editor(props: EditorProps): JSX.Element {
               ? strings.editor.createMany(props.targets.length)
               : strings.editor.createAnnotation}
           </Button>
-          <p className="hint">
-            {draftReady ? strings.editor.createHint : strings.editor.createDisabledHint}
-          </p>
+          {/* Only what is blocking right now. The standing rule ("nothing is
+              placed until you create it") is the footer's hint row. */}
+          {!draftReady && <p className="hint">{strings.editor.createDisabledHint}</p>}
         </div>
       )}
 
@@ -302,12 +302,10 @@ export function Editor(props: EditorProps): JSX.Element {
               onChange={props.onSetCardSide}
             />
             {props.pathEditing ? (
-              <>
-                <p className="notice">{strings.editor.pathEditHint}</p>
-                <Button variant="strong" full onClick={props.onExitPathEdit}>
-                  {strings.editor.done}
-                </Button>
-              </>
+              // The instructions for this mode are in the footer's hint row.
+              <Button variant="primary" full onClick={props.onExitPathEdit}>
+                {strings.editor.done}
+              </Button>
             ) : (
               <div className="row row--split">
                 <Button

@@ -44,7 +44,7 @@ export function SettingsPanel(props: Props): JSX.Element {
               {strings.confirm.cancel}
             </Button>
             <Button
-              variant="strong"
+              variant="primary"
               onClick={() => {
                 confirm.action()
                 setConfirm(null)
@@ -65,23 +65,20 @@ export function SettingsPanel(props: Props): JSX.Element {
       title={strings.settings.title}
       onClose={props.onClose}
       footer={
-        <Button variant="strong" onClick={props.onClose}>
+        <Button variant="primary" onClick={props.onClose}>
           {strings.categories.done}
         </Button>
       }
     >
       <div className="stack">
-        <label className="field">
-          <span className="field__label">{strings.settings.cardWidth}</span>
-          <Slider
-            label={strings.settings.cardWidth}
-            min={SETTINGS_RANGES.cardWidth.min}
-            max={SETTINGS_RANGES.cardWidth.max}
-            value={settings.cardWidth}
-            disabled={readOnly}
-            onChange={(cardWidth) => guardedChange({ cardWidth }, true)}
-          />
-        </label>
+        <Slider
+          label={strings.settings.cardWidth}
+          min={SETTINGS_RANGES.cardWidth.min}
+          max={SETTINGS_RANGES.cardWidth.max}
+          value={settings.cardWidth}
+          disabled={readOnly}
+          onChange={(cardWidth) => guardedChange({ cardWidth }, true)}
+        />
 
         <label className="field">
           <span className="field__label">{strings.settings.theme}</span>
@@ -111,17 +108,14 @@ export function SettingsPanel(props: Props): JSX.Element {
           />
         </label>
 
-        <label className="field">
-          <span className="field__label">{strings.settings.cornerRadius}</span>
-          <Slider
-            label={strings.settings.cornerRadius}
-            min={SETTINGS_RANGES.connectorCornerRadius.min}
-            max={SETTINGS_RANGES.connectorCornerRadius.max}
-            value={settings.connectorCornerRadius}
-            disabled={readOnly}
-            onChange={(connectorCornerRadius) => props.onChange({ connectorCornerRadius })}
-          />
-        </label>
+        <Slider
+          label={strings.settings.cornerRadius}
+          min={SETTINGS_RANGES.connectorCornerRadius.min}
+          max={SETTINGS_RANGES.connectorCornerRadius.max}
+          value={settings.connectorCornerRadius}
+          disabled={readOnly}
+          onChange={(connectorCornerRadius) => props.onChange({ connectorCornerRadius })}
+        />
 
         <Toggle
           label={strings.settings.connectorDashed}
@@ -160,18 +154,15 @@ export function SettingsPanel(props: Props): JSX.Element {
           onChange={(autoRefreshOnOpen) => props.onChange({ autoRefreshOnOpen })}
         />
 
-        <label className="field">
-          <span className="field__label">{strings.settings.arrangeGutter}</span>
-          <Slider
-            label={strings.settings.arrangeGutter}
-            min={SETTINGS_RANGES.arrangeGutter.min}
-            max={SETTINGS_RANGES.arrangeGutter.max}
-            step={4}
-            value={settings.arrangeGutter}
-            disabled={readOnly}
-            onChange={(arrangeGutter) => props.onChange({ arrangeGutter })}
-          />
-        </label>
+        <Slider
+          label={strings.settings.arrangeGutter}
+          min={SETTINGS_RANGES.arrangeGutter.min}
+          max={SETTINGS_RANGES.arrangeGutter.max}
+          step={4}
+          value={settings.arrangeGutter}
+          disabled={readOnly}
+          onChange={(arrangeGutter) => props.onChange({ arrangeGutter })}
+        />
 
         <label className="field">
           <span className="field__label">{strings.settings.arrangeSide}</span>

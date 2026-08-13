@@ -83,27 +83,39 @@ The sandbox and the UI have **separate tsconfigs** on purpose: the sandbox has n
 DOM, no `window`, no `fetch`, no `localStorage`. ESLint enforces that, so code
 that would crash at runtime fails the lint instead.
 
+## Design
+
+`DESIGN.md` in the repo root is the design system: colour tokens for both themes,
+the type scale, geometry, component specs and the rules that hold them together.
+`src/ui/styles.css` implements it and defines no values of its own — change a
+colour there and you have forked the system, so change it in `DESIGN.md` first.
+
+Dark is the default. The header carries the switch; the choice is per person and
+lives in `clientStorage`. Do not confuse it with `Settings.theme`, which is the
+theme of the cards drawn on the canvas and belongs to the document.
+
 ## Brand assets
 
-`assets/figtations-logo-dark.svg` and `-light.svg` are the mark: an annotation
-card on a leader line with a dot at the anchor. They differ only in the neutral
-stroke (`#ECECEF` for dark backgrounds, `#333333` for light); the yellow and
-orange accents are fixed.
+`assets/figtations-mark-{dark,light,mono}.svg` are the mark — a bracket with two
+bands. `figtations-icon-16.svg` is the small-size drawing (thicker stroke, tighter
+bands) for 24px and below; a scaled-down mark loses its hairlines.
 
-The panel does not load either file — `src/ui/components/Logo.tsx` draws the same
-geometry inline with `currentColor` for the neutral parts, so it needs no asset
-pipeline and follows whatever `color` the header sets. The SVGs are here for the
-places outside the bundle: the Figma Community listing icon, docs, slides.
+The panel loads none of them. `src/ui/components/Logo.tsx` draws the geometry
+inline and takes its colours from the theme, so the header mark follows the switch
+with no second copy. The files are for everything outside the bundle: the Figma
+Community listing, docs, slides.
 
 ## Privacy
 
-`networkAccess` is `none`. The plugin sends nothing anywhere, has no telemetry and
-loads no external fonts or assets. All data lives in the document's _shared_
+`networkAccess` is `none`. The plugin sends nothing anywhere and has no telemetry.
+The two fonts it uses are compiled into `dist/ui.html` as data URIs at build time,
+so nothing is fetched at runtime either. All data lives in the document's _shared_
 plugin data under the `figtations` namespace, which means other tools and agents
 can read your annotations.
 
 ## Documentation
 
+- `DESIGN.md` — the design system the panel implements
 - `docs/PRD.md` — the product requirements document this is built from
 - `docs/DECISIONS.md` — decision log, including what could not be verified yet
 - `docs/QA.md` — the manual test plan; **still to be walked through**

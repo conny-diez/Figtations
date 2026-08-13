@@ -1,0 +1,73 @@
+/*
+ * DESIGN.md §2: Plus Jakarta Sans for UI, JetBrains Mono for values and labels.
+ *
+ * The manifest allows no network access (NFR-3), so the faces are not fetched —
+ * `assetsInlineLimit` in vite.config.ts turns every woff2 into a data URI inside
+ * the single `ui.html`. Only the latin subset and only the weights the design
+ * actually names: Jakarta 400/500/600/700, Mono 400/500/700. Each extra weight
+ * is ~12 KB (Jakarta) or ~21 KB (Mono) of bundle, so none is added "just in case".
+ *
+ * The woff2 files are referenced directly rather than through @fontsource's own
+ * stylesheets: those also list a woff fallback, which would inline a second copy
+ * of every face for browsers Figma does not run on.
+ */
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url('@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-600-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url('@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('@fontsource/jetbrains-mono/files/jetbrains-mono-latin-700-normal.woff2') format('woff2');
+}

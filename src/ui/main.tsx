@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import './fonts.css'
 import './styles.css'
 
 // Global safety net (PRD NFR-5): an unhandled error must still be visible.
