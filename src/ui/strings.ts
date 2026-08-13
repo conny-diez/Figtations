@@ -1,6 +1,7 @@
 /** All user-facing strings in one place (PRD NFR-7). English only in v1. */
 export const strings = {
   appName: 'Figtations',
+  close: 'Close plugin',
   tabs: { annotate: 'Annotate', all: 'All' },
 
   devModeBanner: 'Read-only in Dev mode — switch to Design mode to edit',

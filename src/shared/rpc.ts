@@ -48,6 +48,7 @@ export type UiRequest =
   | { t: 'exportNative'; scope: 'page' | 'file' }
   | { t: 'updateSettings'; patch: Partial<Settings> }
   | { t: 'resizeUi'; width: number; height: number; persist: boolean }
+  | { t: 'closePlugin' }
 
 export type MainEvent =
   | { t: 'state'; payload: PluginState }

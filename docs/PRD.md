@@ -1047,21 +1047,28 @@ Exakt die 8 Werte aus `AnnotationCategoryColor` (C-5). Hex-Werte sind an die Scr
 
 ## 8. Plugin-UI (Panel) — Stil
 
-Das Panel folgt Figmas eigener Dark-UI (Screenshots 3–5), nutzt aber **keine** privaten Figma-Assets.
+Das Panel folgt dem Figtations-Design-Mock: fast schwarze Shell, abgesetzte Karten
+auf weichen Rändern, Gelb als einziger Akzent. **Keine** privaten Figma-Assets.
 
-| Token              | Wert                                                                             |
-| ------------------ | -------------------------------------------------------------------------------- |
-| `--bg`             | `#2C2C2C`                                                                        |
-| `--bg-elevated`    | `#383838`                                                                        |
-| `--bg-input`       | `#3D3D3D`                                                                        |
-| `--border`         | `#4A4A4A`                                                                        |
-| `--text`           | `#FFFFFF`                                                                        |
-| `--text-secondary` | `#A1A1A1`                                                                        |
-| `--accent`         | `#0D99FF` (Primary Button, Focus Ring)                                           |
-| `--danger`         | `#F24822`                                                                        |
-| Font               | `Inter, system-ui, sans-serif`, Basis 11px (Figma-Panel-Konvention), Inputs 12px |
-| Radius             | 6 (Inputs, Buttons), 13 (Modals)                                                 |
-| Row-Höhe           | 32                                                                               |
+| Token              | Wert                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `--bg`             | `#131417` (Shell), `--bg-bar` `#16171B` (Footer)                                      |
+| `--surface`        | `#1C1D22` (Karten, Inputs, Buttons), `--surface-raised` `#1F2026` (aktiver Tab)       |
+| `--border`         | `#26272E`, `--border-strong` `#2E2F37`, `--border-hover` `#3A3B44`                    |
+| `--text`           | `#F4F4F5`                                                                             |
+| `--text-secondary` | `#A9AAB2`, `--text-muted` `#8C8E97`, `--text-dim` `#7D7F88` (Section-Labels)          |
+| `--accent`         | `#FFD52E` (Primary Button, aktives Segment, Focus Ring), Hover `#FFE266`              |
+| `--on-accent`      | `#131417` (Text auf Gelb)                                                             |
+| `--danger`         | `#FF6B57`, Rand `#57231C`, Hover-Fläche `#2A1310`                                     |
+| Font               | `Manrope, Inter, system-ui, sans-serif`, Basis 14px, Inputs 15px, Section-Labels 11px |
+| Radius             | 12 (Inputs, Karten), 11 (Buttons), 9 (Segmente), 7 (Icon-Buttons), 18 (Modals)        |
+| Row-Höhe           | 40                                                                                    |
+| Panel-Startgröße   | 420 × 780                                                                             |
+
+Section-Labels sind 11px/700, `letter-spacing: .09em`, Uppercase.
+
+Manrope wird nur benutzt, wenn das Betriebssystem sie hat — NFR-3 verbietet externe
+Fonts, also wird nichts nachgeladen und die Kette fällt auf Inter/`system-ui` zurück.
 
 **Accessibility:** Vollständige Tastaturbedienbarkeit (Tab-Order, Enter/Escape in Modals, Arrow-Keys in Dropdowns), sichtbarer 2px Focus-Ring in `--accent`, `aria-label` auf allen Icon-only-Buttons, Kontrast ≥ 4.5:1 für Text. Kategorien werden **nie** nur über Farbe kommuniziert — immer Farbe + Label.
 

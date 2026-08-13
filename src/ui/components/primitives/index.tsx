@@ -5,12 +5,14 @@ import { clampPanelSize } from '../../../shared/types'
 interface ButtonProps {
   children: ReactNode
   onClick?: () => void
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'dashed'
   disabled?: boolean
   title?: string
   ariaLabel?: string
   type?: 'button' | 'submit'
   full?: boolean
+  /** Icon-only button: a fixed square instead of label-driven width. */
+  square?: boolean
 }
 
 export function Button({
@@ -22,11 +24,12 @@ export function Button({
   ariaLabel,
   type = 'button',
   full = false,
+  square = false,
 }: ButtonProps): JSX.Element {
   return (
     <button
       type={type}
-      className={`btn btn--${variant}${full ? ' btn--full' : ''}`}
+      className={`btn btn--${variant}${full ? ' btn--full' : ''}${square ? ' btn--square' : ''}`}
       onClick={onClick}
       disabled={disabled}
       title={title}
@@ -41,14 +44,22 @@ interface IconButtonProps {
   label: string
   onClick: () => void
   disabled?: boolean
+  /** `danger` turns the hover state red — used for destructive row actions. */
+  tone?: 'default' | 'danger'
   children: ReactNode
 }
 
-export function IconButton({ label, onClick, disabled, children }: IconButtonProps): JSX.Element {
+export function IconButton({
+  label,
+  onClick,
+  disabled,
+  tone = 'default',
+  children,
+}: IconButtonProps): JSX.Element {
   return (
     <button
       type="button"
-      className="icon-btn"
+      className={`icon-btn${tone === 'danger' ? ' icon-btn--danger' : ''}`}
       aria-label={label}
       title={label}
       onClick={onClick}

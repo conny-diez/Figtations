@@ -544,6 +544,11 @@ async function handle(request: UiRequest): Promise<unknown> {
       if (request.persist) await figma.clientStorage.setAsync(PANEL_SIZE_KEY, { width, height })
       return null
     }
+
+    case 'closePlugin': {
+      figma.closePlugin()
+      return null
+    }
   }
 }
 

@@ -234,10 +234,10 @@ export const DEFAULT_SETTINGS: Settings = {
   arrangeSide: 'right',
 }
 
-/** Panel size bounds. FR-7 starts at 360x560 and calls for a resizable panel. */
+/** Panel size bounds. The design mock is 420x780; the panel stays resizable (FR-7). */
 export const PANEL_SIZE = {
-  defaultWidth: 360,
-  defaultHeight: 560,
+  defaultWidth: 420,
+  defaultHeight: 780,
   minWidth: 300,
   minHeight: 320,
   maxWidth: 1600,

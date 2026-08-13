@@ -268,6 +268,24 @@ export function App(): JSX.Element {
 
   return (
     <div className="app">
+      <header className="appbar">
+        <span className="appbar__mark" aria-hidden="true">
+          &lt;/&gt;
+        </span>
+        <span className="appbar__title">{strings.appName}</span>
+        <button
+          type="button"
+          className="appbar__close"
+          aria-label={strings.close}
+          title={strings.close}
+          onClick={() => {
+            void request({ t: 'closePlugin' }).catch(() => undefined)
+          }}
+        >
+          ✕
+        </button>
+      </header>
+
       {readOnly && <div className="banner">{strings.devModeBanner}</div>}
 
       <nav className="tabs" role="tablist" aria-label="Figtations">
@@ -344,6 +362,7 @@ export function App(): JSX.Element {
 
       <footer className="footer">
         <Button
+          variant="primary"
           disabled={readOnly}
           onClick={() => {
             void run(request({ t: 'refresh', scope: 'page' })).then(refreshState)
@@ -368,7 +387,12 @@ export function App(): JSX.Element {
         >
           {strings.footer.arrange}
         </Button>
-        <Button ariaLabel={strings.footer.settings} onClick={() => setSettingsOpen(true)}>
+        <Button
+          square
+          ariaLabel={strings.footer.settings}
+          title={strings.footer.settings}
+          onClick={() => setSettingsOpen(true)}
+        >
           ⚙
         </Button>
         <span className="footer__counter">{strings.footer.counter(state.list.length)}</span>

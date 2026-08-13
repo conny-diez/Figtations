@@ -241,6 +241,7 @@ export function Editor(props: EditorProps): JSX.Element {
                   </IconButton>
                   <IconButton
                     label={`Remove ${probed?.key ?? type}`}
+                    tone="danger"
                     disabled={readOnly}
                     onClick={() => removeProperty(type)}
                   >
@@ -259,7 +260,7 @@ export function Editor(props: EditorProps): JSX.Element {
             onClose={() => setPickerOpen(false)}
           />
         ) : (
-          <Button disabled={readOnly} onClick={() => setPickerOpen(true)}>
+          <Button variant="dashed" disabled={readOnly} onClick={() => setPickerOpen(true)}>
             {strings.editor.addProperty}
           </Button>
         )}
@@ -289,6 +290,9 @@ export function Editor(props: EditorProps): JSX.Element {
               disabled={readOnly}
               onChange={props.onSetRouteMode}
             />
+          </div>
+
+          <div className="field">
             <span className="field__label">{strings.editor.exitSide}</span>
             <Segmented
               ariaLabel={strings.editor.exitSide}
@@ -305,7 +309,7 @@ export function Editor(props: EditorProps): JSX.Element {
                 </Button>
               </>
             ) : (
-              <div className="row">
+              <div className="row row--split">
                 <Button
                   disabled={readOnly || editing.state !== 'ok'}
                   onClick={props.onEnterPathEdit}
@@ -331,7 +335,7 @@ export function Editor(props: EditorProps): JSX.Element {
             </div>
           )}
 
-          <div className="row">
+          <div className="row row--split">
             <Button disabled={editing.state === 'detached'} onClick={props.onSelectTarget}>
               {strings.editor.selectTarget}
             </Button>

@@ -613,3 +613,35 @@ Details that matter:
   the sandbox clamp identically: 300 × 320 minimum, 1600 × 1600 maximum. Clamping
   during the drag rather than only on arrival means dragging back out of a limit
   responds immediately instead of after an equal overshoot.
+
+---
+
+## D-029 · The panel follows the Figtations mock, not Figma's own dark UI
+
+**Problem.** §8 originally described a panel that mimics Figma's dark UI: grey
+`#2C2C2C` surfaces, blue `#0D99FF` accent, 11px base type, 32px rows. The design
+mock for Figtations is a different product: a near-black shell (`#131417`), cards
+on soft borders, one yellow accent (`#FFD52E`), Manrope at 14–15px, and rounder
+geometry (12px inputs, 14px cards, 18px modals).
+
+**Decision.** The mock wins. §8's token table now describes it, and
+`src/ui/styles.css` is the single place the tokens live — no component carries
+hard-coded colours.
+
+Details that matter:
+
+- **No web font.** NFR-3 forbids external assets and the manifest keeps
+  `networkAccess: none`, so Manrope is requested by name only: the stack falls
+  back to Inter and `system-ui` on machines that do not have it. Nothing is
+  fetched.
+- **Yellow is not blue.** `#FFD52E` needs dark text on top (`--on-accent`), so
+  the primary button, the active segment and the active filter chip all invert.
+  The focus ring stays 2px in `--accent` — contrast against `#131417` is far
+  higher than the old blue's.
+- The base type went 11px → 14px and rows 32 → 40, so the default panel grew from
+  360 × 560 to **420 × 780** to match the mock. `PANEL_SIZE.min*` is unchanged;
+  at the 300px minimum the footer counter truncates rather than pushing the
+  buttons around.
+- The header is new (mark, wordmark, close). Closing needs a sandbox call, hence
+  the `closePlugin` request — `figma.closePlugin()` cannot be reached from the
+  iframe.
