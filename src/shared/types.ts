@@ -234,10 +234,10 @@ export const DEFAULT_SETTINGS: Settings = {
   arrangeSide: 'right',
 }
 
-/** Panel size bounds. The design mock is 420x780; the panel stays resizable (FR-7). */
+/** Panel size bounds. Compact type, so the panel stays small — resizable (FR-7). */
 export const PANEL_SIZE = {
-  defaultWidth: 420,
-  defaultHeight: 780,
+  defaultWidth: 380,
+  defaultHeight: 620,
   minWidth: 300,
   minHeight: 320,
   maxWidth: 1600,

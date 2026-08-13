@@ -645,3 +645,36 @@ Details that matter:
 - The header is new (mark, wordmark, close). Closing needs a sandbox call, hence
   the `closePlugin` request — `figma.closePlugin()` cannot be reached from the
   iframe.
+
+---
+
+## D-030 · Yellow is reserved for create and refresh
+
+**Problem.** The first pass at the mock used `#FFD52E` everywhere the design had
+an emphasis: the primary button, the active segment, the active filter chip, the
+token chip, the active tab's edge, the focus ring, the link colour. On a panel
+this dense that is a dozen yellow spots at once, and none of them means more than
+any other.
+
+**Decision.** Yellow marks the two actions that write to the canvas — **Create
+annotation** and **Refresh** — and nothing else.
+
+Everything that was yellow for another reason moved:
+
+- **Selected state** (segment, filter chip, variable token chip) → `--active`
+  `#2C2D34` with a `#3A3B44` inset ring. Selection is state, not a call to
+  action, so it reads as raised anthracite rather than as a button.
+- **Confirms that do not touch the canvas** (modal Done, "Done" after editing a
+  line) → `btn--strong`, white on dark. Still clearly the primary control of its
+  container, without competing with the footer's Refresh.
+- **Focus ring and input focus** → `--focus` `#D6D7DD`. A ring only appears on
+  keyboard focus, but it appeared on top of yellow controls and vanished there.
+- The **swatch** in a property row stays whatever colour the layer's fill is —
+  that is data, not chrome, and it is yellow only when the layer is.
+
+The mark keeps its own yellow and orange. It is a logo, not a control.
+
+**Also here:** the scale came down. Base type 14px → 12px, rows 40 → 32, radii
+one step tighter, default panel 420 × 780 → **380 × 620**. The mock is a poster
+at 1:1; inside a real plugin window that much air pushes the property list below
+the fold.

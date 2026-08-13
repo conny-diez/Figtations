@@ -304,7 +304,7 @@ export function Editor(props: EditorProps): JSX.Element {
             {props.pathEditing ? (
               <>
                 <p className="notice">{strings.editor.pathEditHint}</p>
-                <Button variant="primary" full onClick={props.onExitPathEdit}>
+                <Button variant="strong" full onClick={props.onExitPathEdit}>
                   {strings.editor.done}
                 </Button>
               </>

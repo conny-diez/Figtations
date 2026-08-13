@@ -11,7 +11,7 @@ interface LogoProps {
   size?: number
 }
 
-export function Logo({ size = 40 }: LogoProps): JSX.Element {
+export function Logo({ size = 30 }: LogoProps): JSX.Element {
   return (
     <svg
       width={size}

@@ -44,7 +44,7 @@ export function SettingsPanel(props: Props): JSX.Element {
               {strings.confirm.cancel}
             </Button>
             <Button
-              variant="primary"
+              variant="strong"
               onClick={() => {
                 confirm.action()
                 setConfirm(null)
@@ -65,7 +65,7 @@ export function SettingsPanel(props: Props): JSX.Element {
       title={strings.settings.title}
       onClose={props.onClose}
       footer={
-        <Button variant="primary" onClick={props.onClose}>
+        <Button variant="strong" onClick={props.onClose}>
           {strings.categories.done}
         </Button>
       }

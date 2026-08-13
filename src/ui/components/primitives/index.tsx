@@ -5,7 +5,11 @@ import { clampPanelSize } from '../../../shared/types'
 interface ButtonProps {
   children: ReactNode
   onClick?: () => void
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'dashed'
+  /**
+   * `primary` is yellow and belongs to the two canvas-writing actions only —
+   * create and refresh (D-030). Confirms elsewhere use `strong` (white).
+   */
+  variant?: 'primary' | 'strong' | 'secondary' | 'ghost' | 'danger' | 'dashed'
   disabled?: boolean
   title?: string
   ariaLabel?: string
