@@ -1,12 +1,20 @@
-# Figtations
+<!-- Both delivered marks, unchanged: GitHub switches on the reader's colour
+     scheme. `figtations-mark-dark.svg` is drawn for a dark ground,
+     `figtations-mark-light.svg` for a light one — see DESIGN.md §5 and `assets/`. -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figtations-mark-dark.svg">
+  <img src="assets/figtations-mark-light.svg" width="72" height="72" alt="Figtations">
+</picture>
 
-**Annotations you can actually move.**
+# Figtations — Figma Plugin
 
-A Figma plugin that replicates the native annotation feature — categories,
-labels, pinned properties, value formatting — and adds the one thing it lacks:
-annotations are free-floating nodes on the canvas, movable by hand, still
-logically and visually tied to their target layer, with property values that stay
-live.
+**1.0.0 Beta 1** (`1.0.0-beta.1`)
+
+**Annotations you can actually move.** A Figma plugin that replicates the native
+annotation feature — categories, labels, pinned properties, value formatting —
+and adds the one thing it lacks: annotations are free-floating nodes on the
+canvas, movable by hand, still logically and visually tied to their target layer,
+with property values that stay live.
 
 Figma's native annotations are pinned to the layer, auto-placed, and nearly
 invisible in Design mode. That makes them unusable for stakeholder reviews,
