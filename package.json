@@ -17,13 +17,20 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,css,json,md,mjs}\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run typecheck && npm run lint && npm run test && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "changelog": "git-cliff v1.0.0-beta.1..HEAD --output CHANGELOG.md",
+    "changelog:unreleased": "git-cliff v1.0.0-beta.1..HEAD --unreleased",
+    "changelog:latest": "git-cliff v1.0.0-beta.1..HEAD --latest",
+    "release:changelog": "git-cliff v1.0.0-beta.1..HEAD --tag \"v$npm_package_version\" --output CHANGELOG.md",
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
     "@figma/plugin-typings": "^1.109.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/plus-jakarta-sans": "^5.3.0",
@@ -34,6 +41,8 @@
     "concurrently": "^9.1.0",
     "esbuild": "^0.24.0",
     "eslint": "^9.17.0",
+    "git-cliff": "^2.13.1",
+    "lefthook": "^2.1.10",
     "prettier": "^3.4.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.1",
