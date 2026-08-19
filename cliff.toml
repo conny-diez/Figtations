@@ -1,11 +1,54 @@
-# Changelog
+# git-cliff — turns the Conventional Commits history into CHANGELOG.md.
+# https://git-cliff.org
+#
+# Only commits *after* the v1.0.0-beta.1 tag are generated from history; that
+# release predates Conventional Commits and its hand-written notes are frozen in
+# `footer` below, verbatim. The npm scripts pass the `v1.0.0-beta.1..HEAD` range,
+# so every run reproduces the same file: header, generated sections, frozen tail.
+#
+#   npm run changelog             # regenerate CHANGELOG.md (Unreleased + tagged)
+#   npm run changelog:unreleased  # preview pending notes on stdout
+#   npm run changelog:latest      # the newest tag's section only (GitHub release body)
+#   npm run release:changelog     # fold Unreleased under the package.json version
+#
+# changelog:latest ("--latest") walks back from the newest tag to the one
+# before it, so run it *after* `git tag` for a release — not as a general
+# preview, that's changelog:unreleased's job. Until a second conventional-era
+# tag exists, "newest tag" still means v1.0.0-beta.1, so `--latest` replays
+# that tag's full pre-Conventional-Commits history instead of the frozen
+# footer; harmless, and it resolves itself the moment the next release is
+# tagged.
+
+[changelog]
+header = """# Changelog
 
 All notable changes to Figtations are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
+"""
+# trim = false (below), so the template owns its whitespace: every line sits at
+# column 0 and `\` line-continuations swallow the newlines Tera would otherwise
+# emit. Keep it that way — indenting these lines would indent the changelog.
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}]\
+{% if previous.version %}(https://github.com/conny-diez/Figtations/compare/{{ previous.version }}...{{ version }}){% endif %} - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
 ## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+
+{% for commit in commits %}\
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{% if commit.breaking %}**[breaking]** {% endif %}{{ commit.message | upper_first }}
+{% endfor %}\
+{% endfor %}"""
+# Everything from v1.0.0-beta.1 down is frozen — hand-written and not derivable
+# from commits. git-cliff appends it below the generated sections on every run.
+# trim = false keeps the markdown list indentation intact. The blank first line
+# survives TOML's leading-newline trim and becomes the separator before beta.1.
+footer = """
 
 ## [1.0.0-beta.1] - 2026-08-13
 
@@ -98,4 +141,36 @@ Inherent to the Figma plugin API, not defects (PRD §3):
 - `scripts/build-release.sh` builds the release artifact: clean install, verify,
   build, pack, then re-extract and diff the archive against `dist/` before
   printing the checksum. Fail-fast throughout, so a red gate cannot reach a zip.
+"""
+trim = false
 
+[git]
+# Parse Conventional Commits and drop everything that isn't one — merge commits
+# and the pre-Conventional history both fall away, so the range bound is belt
+# and braces.
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+protect_breaking_commits = false
+filter_commits = false
+tag_pattern = "v[0-9].*"
+topo_order = false
+sort_commits = "oldest"
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->Added" },
+  { message = "^refactor", group = "<!-- 1 -->Changed" },
+  { message = "^style", group = "<!-- 1 -->Changed" },
+  { message = "^fix", group = "<!-- 2 -->Fixed" },
+  { message = "^perf", group = "<!-- 3 -->Performance" },
+  { message = "^doc", group = "<!-- 4 -->Documentation" },
+  { message = "^deprecate", group = "<!-- 5 -->Deprecated" },
+  { message = "^remove", group = "<!-- 6 -->Removed" },
+  { message = "^security", group = "<!-- 7 -->Security" },
+  { message = "^revert", group = "<!-- 8 -->Reverted" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore\\(deps", skip = true },
+  { message = "^chore", skip = true },
+  { message = "^ci", skip = true },
+  { message = "^build", skip = true },
+  { message = "^test", skip = true },
+]

@@ -1,0 +1,16 @@
+# Git hooks, managed by lefthook (https://lefthook.dev).
+#
+# Wired up automatically by the `prepare` npm script, so a fresh `npm install`
+# installs the hooks — no manual `lefthook install` step. Run it by hand only if
+# you cloned before the hooks existed.
+#
+# The commit-msg hook enforces Conventional Commits (https://conventionalcommits.org)
+# via commitlint. That structured history is what git-cliff reads to build
+# CHANGELOG.md, so a rejected message here is the price of a self-writing changelog.
+
+commit-msg:
+  commands:
+    commitlint:
+      # {1} is the path to the commit-message file Git hands the hook.
+      # --no-install: use the pinned local commitlint, never fetch one.
+      run: npx --no-install commitlint --edit {1}
