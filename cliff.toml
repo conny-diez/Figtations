@@ -8,8 +8,16 @@
 #
 #   npm run changelog             # regenerate CHANGELOG.md (Unreleased + tagged)
 #   npm run changelog:unreleased  # preview pending notes on stdout
-#   npm run changelog:latest      # the newest section only (GitHub release body)
+#   npm run changelog:latest      # the newest tag's section only (GitHub release body)
 #   npm run release:changelog     # fold Unreleased under the package.json version
+#
+# changelog:latest ("--latest") walks back from the newest tag to the one
+# before it, so run it *after* `git tag` for a release — not as a general
+# preview, that's changelog:unreleased's job. Until a second conventional-era
+# tag exists, "newest tag" still means v1.0.0-beta.1, so `--latest` replays
+# that tag's full pre-Conventional-Commits history instead of the frozen
+# footer; harmless, and it resolves itself the moment the next release is
+# tagged.
 
 [changelog]
 header = """# Changelog

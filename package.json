@@ -20,7 +20,7 @@
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
     "changelog": "git-cliff v1.0.0-beta.1..HEAD --output CHANGELOG.md",
     "changelog:unreleased": "git-cliff v1.0.0-beta.1..HEAD --unreleased",
-    "changelog:latest": "git-cliff v1.0.0-beta.1..HEAD --latest",
+    "changelog:latest": "git-cliff --latest --strip all",
     "release:changelog": "git-cliff v1.0.0-beta.1..HEAD --tag \"v$npm_package_version\" --output CHANGELOG.md",
     "prepare": "lefthook install"
   },
